@@ -377,27 +377,4 @@ app.get("/api/stats", async (req, res) => {
   }
 });
 
-// Vite middleware for development - only run locally
-if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
-  const { createServer: createViteServer } = await import("vite");
-  const vite = await createViteServer({
-    server: { middlewareMode: true },
-    appType: "spa",
-  });
-  app.use(vite.middlewares);
-} else {
-  app.use(express.static(path.join(__dirname, "..", "dist")));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "..", "dist", "index.html"));
-  });
-}
-
-// Only listen if not running in a serverless environment
-if (!process.env.VERCEL) {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-  });
-}
-
 export default app;
