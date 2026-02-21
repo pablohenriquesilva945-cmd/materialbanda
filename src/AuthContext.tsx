@@ -28,9 +28,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('auth_cautela', 'true');
         return true;
       }
+      console.warn('Login falhou:', data.error || 'Senha incorreta');
       return false;
     } catch (e) {
-      console.error('Erro no login:', e);
+      console.error('Erro de conexão no login:', e);
       return false;
     }
   };

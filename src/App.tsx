@@ -26,9 +26,10 @@ const AppContent: React.FC = () => {
           </div>
 
           <form
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              if (!login(password)) {
+              const success = await login(password);
+              if (!success) {
                 setError(true);
                 setPassword('');
               }

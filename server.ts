@@ -26,6 +26,7 @@ app.use(express.json());
 // Auth
 app.post("/api/login", async (req, res) => {
   const { password } = req.body;
+  console.log("Tentativa de login recebida");
   try {
     const { data, error } = await supabase
       .from("configuracao")
@@ -33,15 +34,20 @@ app.post("/api/login", async (req, res) => {
       .eq("key", "access_password")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Erro ao buscar senha no Supabase:", error);
+      throw error;
+    }
 
     if (data.value === password) {
+      console.log("Login bem-sucedido");
       res.json({ success: true });
     } else {
+      console.warn("Senha incorreta tentada");
       res.status(401).json({ success: false, error: "Senha incorreta" });
     }
   } catch (e: any) {
-    console.error("Erro no login:", e);
+    console.error("Erro interno no login:", e);
     res.status(500).json({ error: e.message });
   }
 });
