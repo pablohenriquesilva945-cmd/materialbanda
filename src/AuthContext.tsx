@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  errorMsg: string | null;
   login: (password: string) => Promise<boolean>;
   logout: () => void;
 }
@@ -12,8 +13,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('auth_cautela') === 'true';
   });
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const login = async (password: string) => {
+    setErrorMsg(null);
     try {
       const response = await fetch('/api/login', {
         method: 'POST',
@@ -28,10 +31,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem('auth_cautela', 'true');
         return true;
       }
-      console.warn('Login falhou:', data.error || 'Senha incorreta');
+      const msg = data.error || 'Senha incorreta';
+      setErrorMsg(msg);
+      console.warn('Login falhou:', msg);
       return false;
     } catch (e) {
-      console.error('Erro de conexão no login:', e);
+      const msg = 'Erro de conexão no login. Verifique se o servidor está rodando e se as variáveis de ambiente no Vercel estão configuradas.';
+      setErrorMsg(msg);
+      console.error(msg, e);
       return false;
     }
   };
@@ -42,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, errorMsg, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

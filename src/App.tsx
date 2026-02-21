@@ -8,10 +8,9 @@ import CautionArea from './CautionArea';
 import { LogIn } from 'lucide-react';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, errorMsg } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState(false);
 
   if (!isAuthenticated) {
     return (
@@ -28,11 +27,8 @@ const AppContent: React.FC = () => {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              const success = await login(password);
-              if (!success) {
-                setError(true);
-                setPassword('');
-              }
+              await login(password);
+              setPassword('');
             }}
             className="p-8 space-y-6"
           >
@@ -43,12 +39,11 @@ const AppContent: React.FC = () => {
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
-                  setError(false);
                 }}
                 placeholder="Digite a senha de acesso"
                 className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-all text-base"
               />
-              {error && <p className="text-red-500 text-xs mt-2 font-medium ml-1">Senha incorreta. Tente novamente.</p>}
+              {errorMsg && <p className="text-red-500 text-xs mt-2 font-medium ml-1">{errorMsg}</p>}
             </div>
 
             <button

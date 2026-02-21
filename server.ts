@@ -1,5 +1,4 @@
 import express from "express";
-import { createServer as createViteServer } from "vite";
 import { createClient } from "@supabase/supabase-js";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -10,8 +9,8 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.error("Missing Supabase credentials in .env file");
@@ -304,7 +303,6 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
     const { error: cautelaError } = await supabase
       .from("cautelas")
       .update({
-        status: 'Ativo' ? 'Ativa' : 'Finalizada', // Fix: logical redundancy, keep logic
         status: 'Finalizada',
         data_baixa: new Date().toISOString(),
         assinatura_militar,
@@ -381,6 +379,7 @@ app.get("/api/stats", async (req, res) => {
 
 // Vite middleware for development - only run locally
 if (process.env.NODE_ENV !== "production" && !process.env.VERCEL) {
+  const { createServer: createViteServer } = await import("vite");
   const vite = await createViteServer({
     server: { middlewareMode: true },
     appType: "spa",
