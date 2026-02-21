@@ -7,7 +7,10 @@ import dotenv from "dotenv";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.join(__dirname, "..", ".env") });
+// Load environment variables locally
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config({ path: path.join(__dirname, "..", ".env") });
+}
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
@@ -22,6 +25,15 @@ const app = express();
 app.use(express.json());
 
 // API Routes
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    supabaseUrl: supabaseUrl ? "Configured" : "Missing",
+    supabaseKey: supabaseAnonKey ? "Configured" : "Missing",
+    env: process.env.NODE_ENV
+  });
+});
+
 // Auth
 app.post("/api/login", async (req, res) => {
   const { password } = req.body;
