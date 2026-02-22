@@ -182,6 +182,24 @@ app.post("/api/materiais", async (req, res) => {
   }
 });
 
+app.put("/api/materiais/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nome, bmp, marca, estado, tipo, subtipo, lugar } = req.body;
+  try {
+    const status = estado === 'Manutenção' ? 'Manutenção' : 'Disponível';
+    const { error } = await supabase
+      .from("materiais")
+      .update({ nome, bmp, marca, estado, tipo, subtipo, lugar, status })
+      .eq("id", id);
+
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (e: any) {
+    console.error("Erro ao atualizar material:", e);
+    res.status(400).json({ error: e.message });
+  }
+});
+
 app.delete("/api/materiais/:id", async (req, res) => {
   const { id } = req.params;
   try {
