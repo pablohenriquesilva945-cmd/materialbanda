@@ -312,14 +312,14 @@ const MilitaryArea: React.FC = () => {
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
             Lista de Militares Cadastrados
           </h3>
-          <div className="relative max-w-sm">
+          <div className="relative w-full sm:w-[320px] mt-4 md:mt-0">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={filter}
               onChange={e => setFilter(e.target.value)}
-              className="pl-10 w-full border-slate-300 rounded-full text-sm focus:ring-primary focus:border-primary"
               placeholder="Buscar por nome, SARAM ou posto..."
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:bg-white focus:ring-2 focus:ring-primary/20 outline-none transition-all"
             />
           </div>
         </div>

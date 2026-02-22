@@ -260,13 +260,13 @@ const InventoryArea: React.FC = () => {
           <h3 className="font-bold text-slate-800 flex items-center gap-2">
             Lista de {activeSubTab}s
           </h3>
-          <div className="relative max-w-sm">
+          <div className="relative w-full sm:w-[320px]">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={filter}
               onChange={e => setFilter(e.target.value)}
-              className="pl-10 w-full border-slate-300 rounded-full text-sm focus:ring-primary focus:border-primary"
+              className="pl-10 w-full border-slate-300 rounded-full text-sm focus:ring-primary focus:border-primary truncate"
               placeholder="Buscar por nome, BMP ou marca..."
             />
           </div>
