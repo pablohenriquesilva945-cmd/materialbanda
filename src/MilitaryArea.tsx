@@ -96,7 +96,7 @@ const MilitaryArea: React.FC = () => {
     }
   };
 
-  const filteredMilitares = militares.filter(m => 
+  const filteredMilitares = militares.filter(m =>
     m.nome.toLowerCase().includes(filter.toLowerCase()) ||
     m.saram.includes(filter) ||
     m.posto.toLowerCase().includes(filter.toLowerCase())
@@ -113,14 +113,14 @@ const MilitaryArea: React.FC = () => {
                 <User className="w-5 h-5 text-primary" />
                 Dados do Militar
               </h3>
-              <button 
+              <button
                 onClick={() => setSelectedMilitarForView(null)}
                 className="p-2 hover:bg-slate-200 rounded-full transition-colors"
               >
                 <X className="w-5 h-5 text-slate-500" />
               </button>
             </div>
-            
+
             <div className="p-8 space-y-6">
               <div className="flex items-center gap-4 p-4 bg-primary/5 rounded-2xl border border-primary/10">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
@@ -178,14 +178,14 @@ const MilitaryArea: React.FC = () => {
             </div>
 
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-              <button 
+              <button
                 onClick={() => handleEdit(selectedMilitarForView)}
                 className="px-6 py-2.5 rounded-xl font-bold border border-primary text-primary hover:bg-primary/5 transition-all flex items-center gap-2"
               >
                 <Edit className="w-4 h-4" />
                 Editar Dados
               </button>
-              <button 
+              <button
                 onClick={() => setSelectedMilitarForView(null)}
                 className="px-8 py-2.5 rounded-xl font-bold bg-primary text-white shadow-lg shadow-primary/20 hover:scale-105 transition-all"
               >
@@ -206,7 +206,7 @@ const MilitaryArea: React.FC = () => {
             </h3>
           </div>
           {editingId && (
-            <button 
+            <button
               onClick={() => {
                 setEditingId(null);
                 setFormData({ nome: '', saram: '', posto: '', email: '', telefone: '', endereco: '' });
@@ -221,31 +221,31 @@ const MilitaryArea: React.FC = () => {
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Nome Completo</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={formData.nome}
-                onChange={e => setFormData({...formData, nome: e.target.value})}
-                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none" 
-                placeholder="Ex: João da Silva Santos" 
+                onChange={e => setFormData({ ...formData, nome: e.target.value })}
+                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
+                placeholder="Ex: João da Silva Santos"
                 required
               />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">SARAM</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={formData.saram}
-                onChange={e => setFormData({...formData, saram: e.target.value})}
-                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none" 
-                placeholder="Ex: 7654321" 
+                onChange={e => setFormData({ ...formData, saram: e.target.value })}
+                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
+                placeholder="Ex: 7654321"
                 required
               />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Posto e Graduação</label>
-              <select 
+              <select
                 value={formData.posto}
-                onChange={e => setFormData({...formData, posto: e.target.value})}
+                onChange={e => setFormData({ ...formData, posto: e.target.value })}
                 className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none appearance-none"
                 required
               >
@@ -255,32 +255,32 @@ const MilitaryArea: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Email</label>
-              <input 
-                type="email" 
+              <input
+                type="email"
                 value={formData.email}
-                onChange={e => setFormData({...formData, email: e.target.value})}
-                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none" 
-                placeholder="email@fab.mil.br" 
+                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
+                placeholder="email@fab.mil.br"
               />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Telefone</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={formData.telefone}
-                onChange={e => setFormData({...formData, telefone: e.target.value})}
-                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none" 
-                placeholder="(99) 99999-9999" 
+                onChange={e => setFormData({ ...formData, telefone: e.target.value })}
+                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
+                placeholder="(99) 99999-9999"
               />
             </div>
             <div className="md:col-span-3">
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Endereço</label>
-              <input 
-                type="text" 
+              <input
+                type="text"
                 value={formData.endereco}
-                onChange={e => setFormData({...formData, endereco: e.target.value})}
-                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none" 
-                placeholder="Rua, Número, Bairro, Cidade" 
+                onChange={e => setFormData({ ...formData, endereco: e.target.value })}
+                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
+                placeholder="Rua, Número, Bairro, Cidade"
               />
             </div>
             <div className="md:col-span-3 flex flex-col items-end gap-2 pt-2">
@@ -289,8 +289,8 @@ const MilitaryArea: React.FC = () => {
                   {error}
                 </p>
               )}
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isSubmitting}
                 className="bg-primary hover:opacity-90 disabled:bg-slate-400 text-white font-bold py-2.5 px-8 rounded-lg shadow-md transition-all flex items-center gap-2"
               >
@@ -314,16 +314,16 @@ const MilitaryArea: React.FC = () => {
           </h3>
           <div className="relative max-w-sm">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={filter}
               onChange={e => setFilter(e.target.value)}
-              className="pl-10 w-full border-slate-300 rounded-full text-sm focus:ring-primary focus:border-primary" 
-              placeholder="Buscar por nome, SARAM ou posto..." 
+              className="pl-10 w-full border-slate-300 rounded-full text-sm focus:ring-primary focus:border-primary"
+              placeholder="Buscar por nome, SARAM ou posto..."
             />
           </div>
         </div>
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50">
@@ -345,14 +345,14 @@ const MilitaryArea: React.FC = () => {
                   <td className="px-6 py-4 text-sm text-slate-600">{m.email || '-'}</td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      <button 
+                      <button
                         onClick={() => setSelectedMilitarForView(m)}
                         className="p-1.5 text-slate-400 hover:text-primary transition-colors"
                         title="Ver Detalhes"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(m.id)}
                         className="p-1.5 text-slate-400 hover:text-red-600 transition-colors"
                         title="Excluir Militar"
@@ -370,6 +370,47 @@ const MilitaryArea: React.FC = () => {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile Cards */}
+        <div className="divide-y divide-slate-100 md:hidden">
+          {filteredMilitares.map(m => (
+            <div key={m.id} className="p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-1">
+                  <span className="bg-primary/10 text-primary self-start px-2 py-0.5 rounded text-[10px] font-bold uppercase">{m.posto}</span>
+                  <p className="text-sm font-bold text-slate-900">{m.nome}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setSelectedMilitarForView(m)}
+                    className="p-2 text-slate-400 hover:text-primary transition-colors bg-slate-50 rounded-lg"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(m.id)}
+                    className="p-2 text-slate-400 hover:text-red-600 transition-colors bg-slate-50 rounded-lg"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <p className="text-slate-500 font-bold uppercase text-[9px] mb-0.5">SARAM</p>
+                  <p className="text-slate-800 font-semibold">{m.saram}</p>
+                </div>
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <p className="text-slate-500 font-bold uppercase text-[9px] mb-0.5">E-mail</p>
+                  <p className="text-slate-800 font-semibold truncate">{m.email || '-'}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+          {filteredMilitares.length === 0 && (
+            <p className="px-6 py-8 text-center text-slate-400 text-sm italic">Nenhum militar encontrado.</p>
+          )}
         </div>
       </div>
     </div>

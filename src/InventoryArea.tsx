@@ -97,7 +97,7 @@ const InventoryArea: React.FC = () => {
     <div className="space-y-8">
       <QrCodeModal material={selectedMaterialForQr} onClose={() => setSelectedMaterialForQr(null)} />
       {/* Sub-tabs */}
-      <div className="flex border-b border-slate-200 gap-8">
+      <div className="flex border-b border-slate-200 gap-4 sm:gap-8 overflow-x-auto no-scrollbar scroll-smooth snap-x">
         {subTabs.map((tab) => (
           <button
             key={tab.id}
@@ -106,7 +106,7 @@ const InventoryArea: React.FC = () => {
               setFilter('');
             }}
             className={cn(
-              "pb-4 text-sm font-bold flex items-center gap-2 transition-all relative",
+              "pb-4 text-sm font-bold flex items-center gap-2 transition-all relative whitespace-nowrap snap-start",
               activeSubTab === tab.id
                 ? "text-primary border-b-2 border-primary"
                 : "text-slate-400 hover:text-slate-600"
@@ -307,45 +307,45 @@ const InventoryArea: React.FC = () => {
         {/* Mobile Cards */}
         <div className="divide-y divide-slate-100 md:hidden">
           {filteredMateriais.map(m => (
-            <div key={m.id} className="p-4 space-y-3">
+            <div key={m.id} className="p-4 space-y-4">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-bold text-slate-900">{m.nome}</p>
-                  <p className="text-xs text-slate-500">{m.marca || 'Sem marca'}</p>
+                  <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{m.marca || 'Sem marca'}</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button className="p-1.5 text-slate-400 hover:text-primary transition-colors">
+                <div className="flex items-center gap-1">
+                  <button className="p-2 text-slate-400 hover:text-primary transition-colors bg-slate-50 rounded-lg">
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(m.id)}
-                    className="p-1.5 text-slate-400 hover:text-red-600 transition-colors"
+                    className="p-2 text-slate-400 hover:text-red-600 transition-colors bg-slate-50 rounded-lg"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => setSelectedMaterialForQr(m)} className="p-1.5 text-slate-400 hover:text-primary transition-colors">
+                  <button onClick={() => setSelectedMaterialForQr(m)} className="p-2 text-slate-400 hover:text-primary transition-colors bg-slate-50 rounded-lg">
                     <QrCode className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 text-xs">
-                <div className="bg-slate-50 p-2 rounded-lg">
-                  <p className="text-slate-500 font-bold uppercase text-[9px]">BMP</p>
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <p className="text-slate-500 font-bold uppercase text-[9px] mb-0.5">BMP</p>
                   <p className="text-slate-800 font-semibold">{m.bmp}</p>
                 </div>
-                <div className="bg-slate-50 p-2 rounded-lg">
-                  <p className="text-slate-500 font-bold uppercase text-[9px]">Estado</p>
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <p className="text-slate-500 font-bold uppercase text-[9px] mb-0.5">Estado</p>
                   <span className={cn(
-                    "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase inline-block",
+                    "px-2 py-0.5 rounded text-[9px] font-bold uppercase inline-block",
                     m.estado === 'Bom' ? "bg-green-100 text-green-700" :
                       m.estado === 'Manutenção' ? "bg-amber-100 text-amber-700" :
                         "bg-red-100 text-red-700"
                   )}>{m.estado}</span>
                 </div>
-                <div className="bg-slate-50 p-2 rounded-lg">
-                  <p className="text-slate-500 font-bold uppercase text-[9px]">Status</p>
+                <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <p className="text-slate-500 font-bold uppercase text-[9px] mb-0.5">Status</p>
                   <span className={cn(
-                    "px-2 py-0.5 rounded-full text-[9px] font-bold uppercase inline-block",
+                    "px-2 py-0.5 rounded text-[9px] font-bold uppercase inline-block",
                     m.status === 'Disponível' ? "bg-blue-100 text-blue-700" :
                       m.status === 'Cautelado' ? "bg-orange-100 text-orange-700" :
                         "bg-slate-100 text-slate-700"
@@ -353,8 +353,8 @@ const InventoryArea: React.FC = () => {
                 </div>
               </div>
               {activeSubTab === 'Outros' && m.lugar && (
-                <div className="text-xs bg-slate-50 p-2 rounded-lg">
-                  <p className="text-slate-500 font-bold uppercase text-[9px]">Lugar</p>
+                <div className="text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <p className="text-slate-500 font-bold uppercase text-[9px] mb-0.5">Lugar</p>
                   <p className="text-slate-800 font-semibold">{m.lugar}</p>
                 </div>
               )}

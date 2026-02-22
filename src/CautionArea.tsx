@@ -12,7 +12,7 @@ const CautionArea: React.FC = () => {
   const [cautelas, setCautelas] = useState<Cautela[]>([]);
   const [militares, setMilitares] = useState<Militar[]>([]);
   const [materiais, setMateriais] = useState<Material[]>([]);
-  
+
   const [selectedMilitar, setSelectedMilitar] = useState<string>('');
   const [selectedMateriais, setSelectedMateriais] = useState<number[]>([]);
   const [tipoCautela, setTipoCautela] = useState<'Permanente' | 'Temporária'>('Permanente');
@@ -118,7 +118,7 @@ const CautionArea: React.FC = () => {
     const res = await fetch(`/api/cautelas/${cautela.id}/baixa`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         itens_estados,
         assinatura_militar,
         assinatura_encarregado
@@ -126,14 +126,14 @@ const CautionArea: React.FC = () => {
     });
 
     if (res.ok) {
-      const updatedCautela: Cautela = { 
-        ...cautela, 
-        status: 'Finalizada', 
+      const updatedCautela: Cautela = {
+        ...cautela,
+        status: 'Finalizada',
         data_baixa: new Date().toISOString(),
         assinatura_militar,
         assinatura_encarregado
       };
-      await handlePreview(updatedCautela); 
+      await handlePreview(updatedCautela);
       fetchData();
     }
   };
@@ -152,18 +152,18 @@ const CautionArea: React.FC = () => {
   };
 
   const toggleMaterial = (id: number) => {
-    setSelectedMateriais(prev => 
+    setSelectedMateriais(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
-  const filteredMilitares = militares.filter(m => 
+  const filteredMilitares = militares.filter(m =>
     m.nome.toLowerCase().includes(militarSearch.toLowerCase()) ||
     m.saram.includes(militarSearch) ||
     m.posto.toLowerCase().includes(militarSearch.toLowerCase())
   );
 
-  const filteredMateriaisDisponiveis = materiais.filter(m => 
+  const filteredMateriaisDisponiveis = materiais.filter(m =>
     m.status === 'Disponível' && (
       m.nome.toLowerCase().includes(materialSearch.toLowerCase()) ||
       m.bmp.includes(materialSearch) ||
@@ -173,7 +173,7 @@ const CautionArea: React.FC = () => {
 
   const disponiveis = materiais.filter(m => m.status === 'Disponível');
 
-  const filteredCautelas = cautelas.filter(c => 
+  const filteredCautelas = cautelas.filter(c =>
     c.status === listTab && (
       c.militar_nome.toLowerCase().includes(recordSearch.toLowerCase()) ||
       c.militar_saram.includes(recordSearch) ||
@@ -197,7 +197,7 @@ const CautionArea: React.FC = () => {
   return (
     <div className="space-y-8">
       {isScanning && <QrScanner onScanSuccess={handleScanSuccess} onClose={() => setIsScanning(false)} />}
-      <SignatureModal 
+      <SignatureModal
         isOpen={isSignatureModalOpen}
         onClose={() => {
           setIsSignatureModalOpen(false);
@@ -207,8 +207,8 @@ const CautionArea: React.FC = () => {
         militarNome={pendingBaixa ? pendingBaixa.militar_nome : (militares.find(m => m.id === parseInt(selectedMilitar))?.nome || '')}
       />
       {previewUrl && (
-        <PdfPreviewModal 
-          url={previewUrl} 
+        <PdfPreviewModal
+          url={previewUrl}
           title={previewTitle}
           onClose={() => {
             setPreviewUrl(null);
@@ -228,17 +228,17 @@ const CautionArea: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {/* Form */}
         <section className="lg:col-span-5 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 px-1">
             <Handshake className="w-5 h-5 text-primary" />
             <h3 className="text-xl font-bold">Nova Cautela</h3>
           </div>
-          <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <form onSubmit={handleConfirmCautela} className="space-y-5">
+          <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm">
+            <form onSubmit={handleConfirmCautela} className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700 ml-1">Militar Responsável</label>
                 <div className="relative mb-2">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input 
+                  <input
                     type="text"
                     value={militarSearch}
                     onChange={e => setMilitarSearch(e.target.value)}
@@ -246,7 +246,7 @@ const CautionArea: React.FC = () => {
                     className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white outline-none transition-all"
                   />
                   {militarSearch && (
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setMilitarSearch('')}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -255,11 +255,11 @@ const CautionArea: React.FC = () => {
                     </button>
                   )}
                 </div>
-                <select 
+                <select
                   value={selectedMilitar}
                   onChange={e => setSelectedMilitar(e.target.value)}
                   className={cn(
-                    "w-full bg-slate-50/50 border rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none appearance-none",
+                    "w-full bg-slate-50/50 border rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none appearance-none truncate",
                     selectedMilitar ? "border-primary ring-2 ring-primary/5 font-bold text-primary" : "border-slate-300 text-slate-500"
                   )}
                   required
@@ -278,9 +278,9 @@ const CautionArea: React.FC = () => {
                     type="button"
                     onClick={() => setTipoCautela('Permanente')}
                     className={cn(
-                      "py-2 px-4 rounded-xl text-xs font-bold border transition-all",
-                      tipoCautela === 'Permanente' 
-                        ? "bg-primary text-white border-primary shadow-md" 
+                      "py-2 px-2 sm:px-4 rounded-xl text-[11px] sm:text-xs font-bold border transition-all",
+                      tipoCautela === 'Permanente'
+                        ? "bg-primary text-white border-primary shadow-md"
                         : "bg-white text-slate-500 border-slate-200 hover:border-primary/30"
                     )}
                   >
@@ -290,9 +290,9 @@ const CautionArea: React.FC = () => {
                     type="button"
                     onClick={() => setTipoCautela('Temporária')}
                     className={cn(
-                      "py-2 px-4 rounded-xl text-xs font-bold border transition-all",
-                      tipoCautela === 'Temporária' 
-                        ? "bg-amber-500 text-white border-amber-500 shadow-md" 
+                      "py-2 px-2 sm:px-4 rounded-xl text-[11px] sm:text-xs font-bold border transition-all",
+                      tipoCautela === 'Temporária'
+                        ? "bg-amber-500 text-white border-amber-500 shadow-md"
                         : "bg-white text-slate-500 border-slate-200 hover:border-amber-300"
                     )}
                   >
@@ -301,25 +301,25 @@ const CautionArea: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between ml-1">
                   <label className="text-sm font-bold text-slate-700">Materiais Disponíveis</label>
                   {selectedMateriais.length > 0 && (
-                    <span className="bg-emerald-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full animate-in zoom-in duration-200">
-                      {selectedMateriais.length} SELECIONADO(S)
+                    <span className="bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                      {selectedMateriais.length}
                     </span>
                   )}
                 </div>
                 <div className="relative mb-2">
                   <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input 
+                  <input
                     type="text"
                     value={materialSearch}
                     onChange={e => setMaterialSearch(e.target.value)}
                     placeholder="Filtrar ou escanear..."
                     className="w-full pl-10 pr-20 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white outline-none transition-all"
                   />
-                  <button 
+                  <button
                     type="button"
                     onClick={() => setIsScanning(true)}
                     className="absolute right-10 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary p-1 bg-slate-100 rounded-md"
@@ -328,7 +328,7 @@ const CautionArea: React.FC = () => {
                     <QrCode className="w-4 h-4" />
                   </button>
                   {materialSearch && (
-                    <button 
+                    <button
                       type="button"
                       onClick={() => setMaterialSearch('')}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
@@ -337,56 +337,56 @@ const CautionArea: React.FC = () => {
                     </button>
                   )}
                 </div>
-                <div className="border border-slate-300 rounded-xl overflow-hidden max-h-60 overflow-y-auto divide-y divide-slate-100 bg-slate-50/30">
+                <div className="border border-slate-200 rounded-xl overflow-hidden max-h-52 overflow-y-auto divide-y divide-slate-100 bg-slate-50/30">
                   {filteredMateriaisDisponiveis.map(m => (
-                    <div 
+                    <div
                       key={m.id}
                       onClick={() => toggleMaterial(m.id)}
                       className={cn(
-                        "px-4 py-3 cursor-pointer flex items-center justify-between group transition-all border-l-4",
-                        selectedMateriais.includes(m.id) 
-                          ? "bg-emerald-50 border-emerald-400 shadow-sm" 
+                        "px-4 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-4",
+                        selectedMateriais.includes(m.id)
+                          ? "bg-emerald-50 border-emerald-500 shadow-sm"
                           : "hover:bg-slate-50 border-transparent"
                       )}
                     >
                       <div className="flex flex-col">
                         <span className={cn(
-                          "text-sm font-bold transition-colors",
+                          "text-[13px] font-bold transition-colors",
                           selectedMateriais.includes(m.id) ? "text-emerald-800" : "text-slate-700"
                         )}>{m.nome}</span>
-                        <span className="text-[10px] text-slate-400 uppercase font-medium">BMP: {m.bmp} | {m.marca || 'S/ Marca'}</span>
+                        <span className="text-[9px] text-slate-400 uppercase font-medium">BMP: {m.bmp}</span>
                       </div>
                       <div className={cn(
-                        "w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all",
-                        selectedMateriais.includes(m.id) 
-                          ? "bg-emerald-500 border-emerald-600 text-white scale-110 shadow-md shadow-emerald-500/20" 
-                          : "bg-white border-slate-300 group-hover:border-slate-400"
+                        "w-5 h-5 rounded border flex items-center justify-center transition-all",
+                        selectedMateriais.includes(m.id)
+                          ? "bg-emerald-500 border-emerald-600 text-white"
+                          : "bg-white border-slate-300"
                       )}>
-                        {selectedMateriais.includes(m.id) && <CheckCircle className="w-4 h-4" />}
+                        {selectedMateriais.includes(m.id) && <CheckCircle className="w-3 h-3" />}
                       </div>
                     </div>
                   ))}
                   {filteredMateriaisDisponiveis.length === 0 && (
-                    <div className="p-4 text-center text-slate-400 text-sm italic">Nenhum material encontrado.</div>
+                    <div className="p-4 text-center text-slate-400 text-xs italic">Nenhum material.</div>
                   )}
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-sm font-bold text-slate-700 ml-1">Observações</label>
-                <textarea 
+                <textarea
                   value={observacoes}
                   onChange={e => setObservacoes(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-3 px-4 outline-none resize-none" 
-                  placeholder="Ex: Missão externa, ensaio, etc." 
-                  rows={3}
+                  className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none resize-none"
+                  placeholder="Ex: Missão externa, ensaio, etc."
+                  rows={2}
                 />
               </div>
 
-              <button 
+              <button
                 type="submit"
                 disabled={!selectedMilitar || selectedMateriais.length === 0}
-                className="w-full bg-[#003366] hover:bg-[#002244] disabled:bg-slate-300 text-white font-bold py-3 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/20 transition-all"
+                className="w-full bg-primary hover:opacity-90 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/10 transition-all text-sm"
               >
                 <CheckCircle className="w-5 h-5" />
                 Confirmar Cautela
@@ -397,41 +397,42 @@ const CautionArea: React.FC = () => {
 
         {/* List Section */}
         <section className="lg:col-span-7 space-y-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-4">
-              <button 
+          <div className="flex flex-col gap-4 mb-2">
+            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-1">
+              <button
                 onClick={() => setListTab('Ativa')}
                 className={cn(
-                  "flex items-center gap-2 pb-2 border-b-2 transition-all",
+                  "flex items-center gap-2 pb-2 border-b-2 transition-all whitespace-nowrap",
                   listTab === 'Ativa' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
                 )}
               >
                 <History className="w-5 h-5" />
-                <h3 className="text-xl font-bold">Cautelas Ativas</h3>
+                <h3 className="text-lg font-bold">Ativas</h3>
               </button>
-              <button 
+              <button
                 onClick={() => setListTab('Finalizada')}
                 className={cn(
-                  "flex items-center gap-2 pb-2 border-b-2 transition-all",
+                  "flex items-center gap-2 pb-2 border-b-2 transition-all whitespace-nowrap",
                   listTab === 'Finalizada' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
                 )}
               >
                 <CheckCircle className="w-5 h-5" />
-                <h3 className="text-xl font-bold">Finalizadas</h3>
+                <h3 className="text-lg font-bold">Histórico</h3>
               </button>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="relative">
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="relative flex-1">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input 
+                <input
                   type="text"
                   value={recordSearch}
                   onChange={e => setRecordSearch(e.target.value)}
                   placeholder="Buscar registros..."
-                  className="pl-10 pr-4 py-1.5 bg-white border border-slate-300 rounded-full text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all w-48 md:w-64"
+                  className="pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all w-full"
                 />
               </div>
-              <span className="bg-primary/10 text-primary text-[10px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">
+              <span className="bg-primary/5 text-primary text-[10px] font-black px-3 py-1.5 rounded-lg border border-primary/10 text-center uppercase whitespace-nowrap">
                 {filteredCautelas.length} registros
               </span>
             </div>
@@ -488,14 +489,14 @@ const CautionArea: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2">
-                        <button 
+                        <button
                           onClick={() => handlePreview(c)}
                           className="p-2 text-slate-400 hover:text-primary transition-colors"
                           title="Visualizar Termo"
                         >
                           <Search className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={async () => {
                             if (c.status === 'Ativa') {
                               await downloadTermoCautela(c);
@@ -509,7 +510,7 @@ const CautionArea: React.FC = () => {
                           <Download className="w-4 h-4" />
                         </button>
                         {listTab === 'Ativa' && (
-                          <button 
+                          <button
                             onClick={() => handleBaixa(c)}
                             className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
                           >
@@ -519,7 +520,7 @@ const CautionArea: React.FC = () => {
                         {listTab === 'Finalizada' && (
                           <div className="flex items-center justify-end gap-2">
                             <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">Finalizada</span>
-                            <button 
+                            <button
                               onClick={() => handleDeleteCautela(c.id)}
                               className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                               title="Excluir Registro"
@@ -579,14 +580,14 @@ const CautionArea: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex justify-end items-center gap-2 pt-2 border-t border-slate-100">
-                    <button 
+                    <button
                       onClick={() => handlePreview(c)}
                       className="p-2 text-slate-400 hover:text-primary transition-colors"
                       title="Visualizar Termo"
                     >
                       <Search className="w-4 h-4" />
                     </button>
-                    <button 
+                    <button
                       onClick={async () => {
                         if (c.status === 'Ativa') {
                           await downloadTermoCautela(c);
@@ -600,7 +601,7 @@ const CautionArea: React.FC = () => {
                       <Download className="w-4 h-4" />
                     </button>
                     {listTab === 'Ativa' && (
-                      <button 
+                      <button
                         onClick={() => handleBaixa(c)}
                         className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
                       >
@@ -610,7 +611,7 @@ const CautionArea: React.FC = () => {
                     {listTab === 'Finalizada' && (
                       <div className="flex items-center gap-2">
                         <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">Finalizada</span>
-                        <button 
+                        <button
                           onClick={() => handleDeleteCautela(c.id)}
                           className="p-2 text-slate-300 hover:text-red-500 transition-colors"
                           title="Excluir Registro"
@@ -634,42 +635,42 @@ const CautionArea: React.FC = () => {
 
       {/* Success Feedback */}
       {showSuccess && (
-        <div className="bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-2xl p-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-bottom-4">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
-              <CheckCircle className="w-10 h-10" />
+        <div className="bg-emerald-50 border-2 border-dashed border-emerald-200 rounded-2xl p-4 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 animate-in fade-in slide-in-from-bottom-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-5">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+              <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
             <div className="text-center md:text-left">
-              <h4 className="text-xl font-bold text-emerald-900">Cautela Registrada com Sucesso!</h4>
-              <p className="text-sm text-emerald-700">O material foi alocado ao militar e o registro foi salvo.</p>
+              <h4 className="text-lg sm:text-xl font-bold text-emerald-900 leading-tight">Cautela Registrada!</h4>
+              <p className="text-xs sm:text-sm text-emerald-700 mt-1">O registro foi salvo com sucesso.</p>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
-            <button 
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <button
               onClick={() => {
                 const c = cautelas.find(c => c.id === lastCautelaId);
                 if (c) handlePreview(c);
               }}
-              className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-emerald-600/20 hover:scale-105 transition-transform"
+              className="flex items-center justify-center gap-2 bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg shadow-emerald-600/20 hover:scale-[1.02] transition-all text-sm"
             >
-              <Search className="w-5 h-5" />
-              Visualizar Termo
+              <Search className="w-4 h-4" />
+              Ver Termo
             </button>
-            <button 
+            <button
               onClick={async () => {
                 const c = cautelas.find(c => c.id === lastCautelaId);
                 if (c) await downloadTermoCautela(c);
               }}
-              className="flex items-center justify-center gap-2 bg-[#003366] text-white px-6 py-3 rounded-lg font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-transform"
+              className="flex items-center justify-center gap-2 bg-primary text-white px-5 py-3 rounded-xl font-bold shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all text-sm"
             >
-              <FileText className="w-5 h-5" />
+              <FileText className="w-4 h-4" />
               Baixar Termo
             </button>
-            <button 
+            <button
               onClick={() => setShowSuccess(false)}
-              className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-6 py-3 rounded-lg font-bold hover:bg-slate-50 transition-colors"
+              className="flex items-center justify-center gap-2 bg-white border border-slate-200 px-5 py-3 rounded-xl font-bold hover:bg-slate-50 transition-colors text-sm"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
               Fechar
             </button>
           </div>
