@@ -192,7 +192,7 @@ const InventoryArea: React.FC = () => {
                   required
                 >
                   <option value="">Selecione...</option>
-                  <option value="Douro">Douro</option>
+                  <option value="Duradouro">Duradouro</option>
                   <option value="Expediente">Expediente</option>
                 </select>
               </div>
