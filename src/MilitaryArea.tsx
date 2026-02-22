@@ -19,7 +19,7 @@ const MilitaryArea: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMilitares = () => {
-    fetch('/api/militares')
+    fetch('/api/militares', { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } })
       .then(res => res.json())
       .then(data => setMilitares(data));
   };

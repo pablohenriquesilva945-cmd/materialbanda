@@ -253,10 +253,11 @@ const CautionArea: React.FC = () => {
   }, [recordSearch]);
 
   const fetchData = async () => {
+    const opts = { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } };
     const [cRes, mRes, matRes] = await Promise.all([
-      fetch('/api/cautelas'),
-      fetch('/api/militares'),
-      fetch('/api/materiais')
+      fetch('/api/cautelas', opts),
+      fetch('/api/militares', opts),
+      fetch('/api/materiais', opts)
     ]);
     setCautelas(await cRes.json());
     setMilitares(await mRes.json());

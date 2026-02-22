@@ -22,7 +22,7 @@ const InventoryArea: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMateriais = () => {
-    fetch('/api/materiais')
+    fetch('/api/materiais', { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } })
       .then(res => res.json())
       .then(data => setMateriais(data));
   };
