@@ -230,7 +230,9 @@ const CautionArea: React.FC = () => {
   const [listTab, setListTab] = useState<'Ativa' | 'Finalizada'>('Ativa');
   const [isScanning, setIsScanning] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
-  const [pendingBaixa, setPendingBaixa] = useState<Cautela | null>(null);
+  const [pendingBaixa, setPendingBaixa] = useState<{ cautela: Cautela, materialIds: number[] } | null>(null);
+  const [partialBaixaCautela, setPartialBaixaCautela] = useState<Cautela | null>(null);
+  const [selectedBaixaItems, setSelectedBaixaItems] = useState<number[]>([]);
 
   // Debounced search states
   const [debouncedMilitarSearch, setDebouncedMilitarSearch] = useState('');
@@ -325,18 +327,31 @@ const CautionArea: React.FC = () => {
     }
   };
 
-  const handleBaixa = async (cautela: Cautela) => {
-    setPendingBaixa(cautela);
+  const handleBaixaInit = (cautela: Cautela) => {
+    if (cautela.itens.length > 1) {
+      setPartialBaixaCautela(cautela);
+      setSelectedBaixaItems(cautela.itens.map(i => i.material_id));
+    } else {
+      handleBaixa({ cautela, materialIds: cautela.itens.map(i => i.material_id) });
+    }
+  };
+
+  const handleBaixa = async (pending: { cautela: Cautela, materialIds: number[] }) => {
+    setPendingBaixa(pending);
     setIsSignatureModalOpen(true);
   };
 
-  const finalizeBaixa = async (cautela: Cautela, assinatura_militar: string, assinatura_encarregado: string) => {
-    const itens_estados = cautela.itens.map(item => ({
-      material_id: item.material_id,
-      novo_estado: item.estado_na_cautela
-    }));
+  const finalizeBaixa = async (pending: { cautela: Cautela, materialIds: number[] }, assinatura_militar: string, assinatura_encarregado: string) => {
+    const itens_estados = pending.cautela.itens
+      .filter(item => pending.materialIds.includes(item.material_id))
+      .map(item => ({
+        material_id: item.material_id,
+        novo_estado: item.estado_na_cautela
+      }));
 
-    const res = await fetch(`/api/cautelas/${cautela.id}/baixa`, {
+    if (itens_estados.length === 0) return;
+
+    const res = await fetch(`/api/cautelas/${pending.cautela.id}/baixa`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -347,14 +362,6 @@ const CautionArea: React.FC = () => {
     });
 
     if (res.ok) {
-      const updatedCautela: Cautela = {
-        ...cautela,
-        status: 'Finalizada',
-        data_baixa: new Date().toISOString(),
-        assinatura_militar,
-        assinatura_encarregado
-      };
-      await handlePreview(updatedCautela);
       fetchData();
     }
   };
@@ -432,8 +439,69 @@ const CautionArea: React.FC = () => {
           setPendingBaixa(null);
         }}
         onConfirm={onSignatureConfirm}
-        militarNome={pendingBaixa ? pendingBaixa.militar_nome : (militares.find(m => m.id === parseInt(selectedMilitar))?.nome || '')}
+        militarNome={pendingBaixa ? pendingBaixa.cautela.militar_nome : (militares.find(m => m.id === parseInt(selectedMilitar))?.nome || '')}
       />
+
+      {partialBaixaCautela && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col p-6 animate-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-slate-800 mb-4">Selecionar Itens para Baixa</h3>
+            <p className="text-sm text-slate-600 mb-4 leading-relaxed">
+              Quais itens o militar está devolvendo? Os itens <strong className="text-primary font-bold">não marcados</strong> continuarão em uma nova cautela ativa.
+            </p>
+            <div className="space-y-2 max-h-[40vh] overflow-y-auto mb-6 pr-2">
+              {partialBaixaCautela.itens.map(item => (
+                <label key={item.id} className="flex items-center gap-4 p-3 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={selectedBaixaItems.includes(item.material_id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedBaixaItems([...selectedBaixaItems, item.material_id]);
+                      } else {
+                        setSelectedBaixaItems(selectedBaixaItems.filter(id => id !== item.material_id));
+                      }
+                    }}
+                    className="w-5 h-5 text-primary rounded border-slate-300 focus:ring-primary accent-primary cursor-pointer"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-slate-800">{item.nome}</span>
+                    <span className="text-[10px] text-slate-500 font-mono">BMP: {item.bmp}</span>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            <div className="flex gap-3 justify-end pt-4 border-t border-slate-100">
+              <button
+                onClick={() => {
+                  setPartialBaixaCautela(null);
+                  setSelectedBaixaItems([]);
+                }}
+                className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-all"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  if (selectedBaixaItems.length === 0) {
+                    alert('Selecione pelo menos um item para dar baixa.');
+                    return;
+                  }
+                  handleBaixa({ cautela: partialBaixaCautela, materialIds: selectedBaixaItems });
+                  setPartialBaixaCautela(null);
+                }}
+                disabled={selectedBaixaItems.length === 0}
+                className="bg-primary text-white font-bold px-6 py-2 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100 transition-all flex items-center justify-center gap-2"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Prosseguir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {previewUrl && (
         <PdfPreviewModal
           url={previewUrl}
@@ -667,7 +735,7 @@ const CautionArea: React.FC = () => {
                       c={c}
                       listTab={listTab}
                       onPreview={handlePreview}
-                      onBaixa={handleBaixa}
+                      onBaixa={handleBaixaInit}
                       onDelete={handleDeleteCautela}
                     />
                   ))}
@@ -690,7 +758,7 @@ const CautionArea: React.FC = () => {
                   c={c}
                   listTab={listTab}
                   onPreview={handlePreview}
-                  onBaixa={handleBaixa}
+                  onBaixa={handleBaixaInit}
                   onDelete={handleDeleteCautela}
                 />
               ))}

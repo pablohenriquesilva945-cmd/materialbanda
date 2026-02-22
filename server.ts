@@ -318,6 +318,43 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
   const { itens_estados, assinatura_militar, assinatura_encarregado } = req.body;
 
   try {
+    const { data: cautelaAtual, error: fetchError } = await supabase
+      .from("cautelas")
+      .select("*, itens:cautela_itens(id, material_id)")
+      .eq("id", id)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const returnedItemIds = itens_estados.map((i: any) => i.material_id);
+    const keptItems = cautelaAtual.itens.filter((i: any) => !returnedItemIds.includes(i.material_id));
+
+    if (keptItems.length > 0) {
+      const { data: newCautela, error: newCautelaError } = await supabase
+        .from("cautelas")
+        .insert([{
+          militar_id: cautelaAtual.militar_id,
+          observacoes: cautelaAtual.observacoes,
+          tipo: cautelaAtual.tipo,
+          data_cautela: cautelaAtual.data_cautela,
+          assinatura_militar: cautelaAtual.assinatura_militar,
+          assinatura_encarregado: cautelaAtual.assinatura_encarregado,
+          status: 'Ativa'
+        }])
+        .select()
+        .single();
+
+      if (newCautelaError) throw newCautelaError;
+
+      for (const kept of keptItems) {
+        const { error: updateItemError } = await supabase
+          .from("cautela_itens")
+          .update({ cautela_id: newCautela.id })
+          .eq("id", kept.id);
+        if (updateItemError) throw updateItemError;
+      }
+    }
+
     const { error: cautelaError } = await supabase
       .from("cautelas")
       .update({
