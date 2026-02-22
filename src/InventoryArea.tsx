@@ -60,9 +60,9 @@ const InventoryArea: React.FC = () => {
       } else {
         setError(data.error || 'Erro ao salvar material');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Erro de conexão com o servidor');
+      setError(`Erro de rede/parse: ${err.message || 'Desconhecido'}`);
     } finally {
       setIsSubmitting(false);
     }
