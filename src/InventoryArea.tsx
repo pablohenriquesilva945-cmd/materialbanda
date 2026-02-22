@@ -18,6 +18,7 @@ const InventoryArea: React.FC = () => {
   const [filter, setFilter] = useState('');
   const [selectedMaterialForQr, setSelectedMaterialForQr] = useState<Material | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const fetchMateriais = () => {
@@ -38,8 +39,11 @@ const InventoryArea: React.FC = () => {
     setError(null);
 
     try {
-      const res = await fetch('/api/materiais', {
-        method: 'POST',
+      const url = editingId ? `/api/materiais/${editingId}` : '/api/materiais';
+      const method = editingId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, tipo: activeSubTab })
       });
@@ -48,10 +52,13 @@ const InventoryArea: React.FC = () => {
 
       if (res.ok) {
         setFormData({ nome: '', bmp: '', marca: '', estado: 'Bom', subtipo: '', lugar: '' });
+        setEditingId(null);
         fetchMateriais();
-        setSelectedMaterialForQr(data);
+        if (!editingId) {
+          setSelectedMaterialForQr(data);
+        }
       } else {
-        setError(data.error || 'Erro ao cadastrar material');
+        setError(data.error || 'Erro ao salvar material');
       }
     } catch (err) {
       console.error(err);
@@ -59,6 +66,20 @@ const InventoryArea: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleEdit = (m: Material) => {
+    setFormData({
+      nome: m.nome,
+      bmp: m.bmp,
+      marca: m.marca || '',
+      estado: m.estado,
+      subtipo: m.subtipo || '',
+      lugar: m.lugar || ''
+    });
+    setEditingId(m.id);
+    setActiveSubTab(m.tipo);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: number) => {
@@ -120,9 +141,22 @@ const InventoryArea: React.FC = () => {
 
       {/* Form */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center gap-2">
-          <PlusCircle className="w-5 h-5 text-primary" />
-          <h3 className="font-bold text-slate-800">Cadastrar {activeSubTab}</h3>
+        <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <PlusCircle className="w-5 h-5 text-primary" />
+            <h3 className="font-bold text-slate-800">{editingId ? 'Editar' : 'Cadastrar'} {activeSubTab}</h3>
+          </div>
+          {editingId && (
+            <button
+              onClick={() => {
+                setEditingId(null);
+                setFormData({ nome: '', bmp: '', marca: '', estado: 'Bom', subtipo: '', lugar: '' });
+              }}
+              className="text-xs font-bold text-red-500 hover:text-red-700 uppercase"
+            >
+              Cancelar Edição
+            </button>
+          )}
         </div>
         <div className="p-6">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -213,7 +247,7 @@ const InventoryArea: React.FC = () => {
                 ) : (
                   <Save className="w-4 h-4" />
                 )}
-                {isSubmitting ? 'Cadastrando...' : `Cadastrar ${activeSubTab}`}
+                {isSubmitting ? 'Salvando...' : (editingId ? 'Atualizar Dados' : `Cadastrar ${activeSubTab}`)}
               </button>
             </div>
           </form>
@@ -279,7 +313,7 @@ const InventoryArea: React.FC = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
-                      <button className="p-1.5 text-slate-400 hover:text-primary transition-colors">
+                      <button onClick={() => handleEdit(m)} className="p-1.5 text-slate-400 hover:text-primary transition-colors">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
@@ -314,7 +348,7 @@ const InventoryArea: React.FC = () => {
                   <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{m.marca || 'Sem marca'}</p>
                 </div>
                 <div className="flex items-center gap-1">
-                  <button className="p-2 text-slate-400 hover:text-primary transition-colors bg-slate-50 rounded-lg">
+                  <button onClick={() => handleEdit(m)} className="p-2 text-slate-400 hover:text-primary transition-colors bg-slate-50 rounded-lg">
                     <Edit className="w-4 h-4" />
                   </button>
                   <button
