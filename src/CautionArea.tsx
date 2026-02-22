@@ -9,10 +9,11 @@ import QrScanner from './QrScanner';
 import SignatureModal from './SignatureModal';
 
 const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isSelected: boolean, onToggle: (id: number) => void }) => (
-  <div
+  <button
+    type="button"
     onClick={() => onToggle(m.id)}
     className={cn(
-      "px-4 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-4",
+      "w-full text-left px-4 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-4",
       isSelected
         ? "bg-emerald-50 border-emerald-500 shadow-sm"
         : "hover:bg-slate-50 border-transparent"
@@ -33,7 +34,7 @@ const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isS
     )}>
       {isSelected && <CheckCircle className="w-3 h-3" />}
     </div>
-  </div>
+  </button>
 ));
 
 const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
