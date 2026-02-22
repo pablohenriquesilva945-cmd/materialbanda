@@ -12,25 +12,35 @@ if (process.env.NODE_ENV !== "production") {
   dotenv.config({ path: path.join(__dirname, "..", ".env") });
 }
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || "";
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || "";
+const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error("Missing Supabase credentials in .env file");
+  console.error("ERRO: Credenciais do Supabase ausentes no ambiente!");
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");
 
 const app = express();
 app.use(express.json());
 
 // API Routes
-app.get("/api/health", (req, res) => {
+app.get("/api/health", async (req, res) => {
+  let dbStatus = "Unknown";
+  try {
+    const { error } = await supabase.from("configuracao").select("key").limit(1);
+    dbStatus = error ? `Error: ${error.message}` : "Connected";
+  } catch (e: any) {
+    dbStatus = `Exception: ${e.message}`;
+  }
+
   res.json({
     status: "ok",
+    database: dbStatus,
     supabaseUrl: supabaseUrl ? "Configured" : "Missing",
     supabaseKey: supabaseAnonKey ? "Configured" : "Missing",
-    env: process.env.NODE_ENV
+    env: process.env.NODE_ENV,
+    vercel: !!process.env.VERCEL
   });
 });
 

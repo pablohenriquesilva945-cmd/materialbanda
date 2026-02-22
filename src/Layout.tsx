@@ -56,13 +56,9 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
       </div>
 
       <div className="p-4 border-t border-white/10">
-        <button
-          onClick={logout}
-          className="w-full flex items-center gap-3 px-4 py-3 text-white/70 hover:bg-red-500/20 hover:text-red-300 rounded-lg transition-all"
-        >
-          <LogOut className="w-5 h-5" />
-          <span className="text-sm font-medium">Sair do Sistema</span>
-        </button>
+        <p className="text-center text-[10px] text-white/40 uppercase tracking-widest">
+          Sistema de Acervo v1.0
+        </p>
       </div>
     </div>
   );
