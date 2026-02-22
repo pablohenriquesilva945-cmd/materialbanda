@@ -1,12 +1,211 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Handshake, Search, CheckCircle, FileText, Download, History, X, QrCode, Trash2 } from 'lucide-react';
-import { Cautela, Militar, Material, EstadoMaterial } from './types';
+import { Cautela, Militar, Material, EstadoMaterial, CautelaItem as ICautelaItem } from './types';
 import { cn } from './utils';
 import { format } from 'date-fns';
 import { downloadTermoCautela, downloadTermoBaixa, previewTermoCautela, previewTermoBaixa } from './pdfService';
 import PdfPreviewModal from './PdfPreviewModal';
 import QrScanner from './QrScanner';
 import SignatureModal from './SignatureModal';
+
+const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isSelected: boolean, onToggle: (id: number) => void }) => (
+  <div
+    onClick={() => onToggle(m.id)}
+    className={cn(
+      "px-4 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-4",
+      isSelected
+        ? "bg-emerald-50 border-emerald-500 shadow-sm"
+        : "hover:bg-slate-50 border-transparent"
+    )}
+  >
+    <div className="flex flex-col">
+      <span className={cn(
+        "text-[13px] font-bold transition-colors",
+        isSelected ? "text-emerald-800" : "text-slate-700"
+      )}>{m.nome}</span>
+      <span className="text-[9px] text-slate-400 uppercase font-medium">BMP: {m.bmp}</span>
+    </div>
+    <div className={cn(
+      "w-5 h-5 rounded border flex items-center justify-center transition-all",
+      isSelected
+        ? "bg-emerald-500 border-emerald-600 text-white"
+        : "bg-white border-slate-300"
+    )}>
+      {isSelected && <CheckCircle className="w-3 h-3" />}
+    </div>
+  </div>
+));
+
+const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
+  c: Cautela,
+  listTab: 'Ativa' | 'Finalizada',
+  onPreview: (c: Cautela) => void,
+  onBaixa: (c: Cautela) => void,
+  onDelete: (id: number) => void
+}) => (
+  <tr className="hover:bg-slate-50/50 transition-colors">
+    <td className="px-6 py-4">
+      <div className="flex flex-col">
+        <span className="text-sm font-bold">{c.militar_nome}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-400 uppercase">{c.militar_posto}</span>
+          <span className={cn(
+            "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
+            c.tipo === 'Temporária' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+          )}>
+            {c.tipo}
+          </span>
+        </div>
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex flex-wrap gap-1 max-w-[200px]">
+        {c.itens.map(item => (
+          <span key={item.id} className="bg-slate-100 text-[10px] font-medium px-2 py-0.5 rounded border border-slate-200">
+            {item.nome}
+          </span>
+        ))}
+      </div>
+    </td>
+    <td className="px-6 py-4">
+      <div className="flex flex-col">
+        <span className="text-sm font-medium">
+          {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'dd/MM/yyyy')}
+        </span>
+        <span className="text-[10px] text-slate-400">
+          {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'HH:mm')}
+        </span>
+      </div>
+    </td>
+    <td className="px-6 py-4 text-right space-x-2">
+      <button
+        onClick={() => onPreview(c)}
+        className="p-2 text-slate-400 hover:text-primary transition-colors"
+        title="Visualizar Termo"
+      >
+        <Search className="w-4 h-4" />
+      </button>
+      <button
+        onClick={async () => {
+          if (c.status === 'Ativa') {
+            await downloadTermoCautela(c);
+          } else {
+            await downloadTermoBaixa(c);
+          }
+        }}
+        className="p-2 text-slate-400 hover:text-primary transition-colors"
+        title="Baixar Termo"
+      >
+        <Download className="w-4 h-4" />
+      </button>
+      {listTab === 'Ativa' && (
+        <button
+          onClick={() => onBaixa(c)}
+          className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
+        >
+          Dar Baixa
+        </button>
+      )}
+      {listTab === 'Finalizada' && (
+        <div className="flex items-center justify-end gap-2">
+          <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">Finalizada</span>
+          <button
+            onClick={() => onDelete(c.id)}
+            className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+            title="Excluir Registro"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+    </td>
+  </tr>
+));
+
+const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
+  c: Cautela,
+  listTab: 'Ativa' | 'Finalizada',
+  onPreview: (c: Cautela) => void,
+  onBaixa: (c: Cautela) => void,
+  onDelete: (id: number) => void
+}) => (
+  <div className="p-4 space-y-3">
+    <div className="flex justify-between items-start">
+      <div className="flex flex-col">
+        <span className="text-sm font-bold">{c.militar_nome}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] text-slate-400 uppercase">{c.militar_posto}</span>
+          <span className={cn(
+            "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
+            c.tipo === 'Temporária' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
+          )}>
+            {c.tipo}
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-col items-end text-right">
+        <span className="text-sm font-medium">
+          {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'dd/MM/yyyy')}
+        </span>
+        <span className="text-[10px] text-slate-400">
+          {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'HH:mm')}
+        </span>
+      </div>
+    </div>
+    <div>
+      <p className="text-xs font-bold text-slate-500 uppercase mb-1">Itens</p>
+      <div className="flex flex-wrap gap-1">
+        {c.itens.map(item => (
+          <span key={item.id} className="bg-slate-100 text-[10px] font-medium px-2 py-0.5 rounded border border-slate-200">
+            {item.nome}
+          </span>
+        ))}
+      </div>
+    </div>
+    <div className="flex justify-end items-center gap-2 pt-2 border-t border-slate-100">
+      <button
+        onClick={() => onPreview(c)}
+        className="p-2 text-slate-400 hover:text-primary transition-colors"
+        title="Visualizar Termo"
+      >
+        <Search className="w-4 h-4" />
+      </button>
+      <button
+        onClick={async () => {
+          if (c.status === 'Ativa') {
+            await downloadTermoCautela(c);
+          } else {
+            await downloadTermoBaixa(c);
+          }
+        }}
+        className="p-2 text-slate-400 hover:text-primary transition-colors"
+        title="Baixar Termo"
+      >
+        <Download className="w-4 h-4" />
+      </button>
+      {listTab === 'Ativa' && (
+        <button
+          onClick={() => onBaixa(c)}
+          className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
+        >
+          Dar Baixa
+        </button>
+      )}
+      {listTab === 'Finalizada' && (
+        <div className="flex items-center gap-2">
+          <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">Finalizada</span>
+          <button
+            onClick={() => onDelete(c.id)}
+            className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+            title="Excluir Registro"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+));
 
 const CautionArea: React.FC = () => {
   const [cautelas, setCautelas] = useState<Cautela[]>([]);
@@ -31,6 +230,26 @@ const CautionArea: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [pendingBaixa, setPendingBaixa] = useState<Cautela | null>(null);
+
+  // Debounced search states
+  const [debouncedMilitarSearch, setDebouncedMilitarSearch] = useState('');
+  const [debouncedMaterialSearch, setDebouncedMaterialSearch] = useState('');
+  const [debouncedRecordSearch, setDebouncedRecordSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedMilitarSearch(militarSearch), 300);
+    return () => clearTimeout(timer);
+  }, [militarSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedMaterialSearch(materialSearch), 300);
+    return () => clearTimeout(timer);
+  }, [materialSearch]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedRecordSearch(recordSearch), 300);
+    return () => clearTimeout(timer);
+  }, [recordSearch]);
 
   const fetchData = async () => {
     const [cRes, mRes, matRes] = await Promise.all([
@@ -151,35 +370,42 @@ const CautionArea: React.FC = () => {
     setCurrentCautelaForPreview(cautela);
   };
 
-  const toggleMaterial = (id: number) => {
+  const toggleMaterial = useCallback((id: number) => {
     setSelectedMateriais(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
-  };
+  }, []);
 
-  const filteredMilitares = militares.filter(m =>
-    m.nome.toLowerCase().includes(militarSearch.toLowerCase()) ||
-    m.saram.includes(militarSearch) ||
-    m.posto.toLowerCase().includes(militarSearch.toLowerCase())
-  );
+  const filteredMilitares = useMemo(() => {
+    const search = debouncedMilitarSearch.toLowerCase();
+    return militares.filter(m =>
+      m.nome.toLowerCase().includes(search) ||
+      m.saram.includes(search) ||
+      m.posto.toLowerCase().includes(search)
+    );
+  }, [militares, debouncedMilitarSearch]);
 
-  const filteredMateriaisDisponiveis = materiais.filter(m =>
-    m.status === 'Disponível' && (
-      m.nome.toLowerCase().includes(materialSearch.toLowerCase()) ||
-      m.bmp.includes(materialSearch) ||
-      (m.marca && m.marca.toLowerCase().includes(materialSearch.toLowerCase()))
-    )
-  );
+  const filteredMateriaisDisponiveis = useMemo(() => {
+    const search = debouncedMaterialSearch.toLowerCase();
+    return materiais.filter(m =>
+      m.status === 'Disponível' && (
+        m.nome.toLowerCase().includes(search) ||
+        m.bmp.includes(search) ||
+        (m.marca && m.marca.toLowerCase().includes(search))
+      )
+    ).slice(0, 50); // Limit rendered items for performance
+  }, [materiais, debouncedMaterialSearch]);
 
-  const disponiveis = materiais.filter(m => m.status === 'Disponível');
-
-  const filteredCautelas = cautelas.filter(c =>
-    c.status === listTab && (
-      c.militar_nome.toLowerCase().includes(recordSearch.toLowerCase()) ||
-      c.militar_saram.includes(recordSearch) ||
-      c.itens.some(item => item.nome.toLowerCase().includes(recordSearch.toLowerCase()) || item.bmp.includes(recordSearch))
-    )
-  );
+  const filteredCautelas = useMemo(() => {
+    const search = debouncedRecordSearch.toLowerCase();
+    return cautelas.filter(c =>
+      c.status === listTab && (
+        c.militar_nome.toLowerCase().includes(search) ||
+        c.militar_saram.includes(search) ||
+        c.itens.some(item => item.nome.toLowerCase().includes(search) || item.bmp.includes(search))
+      )
+    );
+  }, [cautelas, listTab, debouncedRecordSearch]);
 
   const handleScanSuccess = (decodedText: string) => {
     try {
@@ -339,32 +565,12 @@ const CautionArea: React.FC = () => {
                 </div>
                 <div className="border border-slate-200 rounded-xl overflow-hidden max-h-52 overflow-y-auto divide-y divide-slate-100 bg-slate-50/30">
                   {filteredMateriaisDisponiveis.map(m => (
-                    <div
+                    <MaterialItem
                       key={m.id}
-                      onClick={() => toggleMaterial(m.id)}
-                      className={cn(
-                        "px-4 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-4",
-                        selectedMateriais.includes(m.id)
-                          ? "bg-emerald-50 border-emerald-500 shadow-sm"
-                          : "hover:bg-slate-50 border-transparent"
-                      )}
-                    >
-                      <div className="flex flex-col">
-                        <span className={cn(
-                          "text-[13px] font-bold transition-colors",
-                          selectedMateriais.includes(m.id) ? "text-emerald-800" : "text-slate-700"
-                        )}>{m.nome}</span>
-                        <span className="text-[9px] text-slate-400 uppercase font-medium">BMP: {m.bmp}</span>
-                      </div>
-                      <div className={cn(
-                        "w-5 h-5 rounded border flex items-center justify-center transition-all",
-                        selectedMateriais.includes(m.id)
-                          ? "bg-emerald-500 border-emerald-600 text-white"
-                          : "bg-white border-slate-300"
-                      )}>
-                        {selectedMateriais.includes(m.id) && <CheckCircle className="w-3 h-3" />}
-                      </div>
-                    </div>
+                      m={m}
+                      isSelected={selectedMateriais.includes(m.id)}
+                      onToggle={toggleMaterial}
+                    />
                   ))}
                   {filteredMateriaisDisponiveis.length === 0 && (
                     <div className="p-4 text-center text-slate-400 text-xs italic">Nenhum material.</div>
@@ -454,83 +660,14 @@ const CautionArea: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {filteredCautelas.map(c => (
-                    <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-bold">{c.militar_nome}</span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-slate-400 uppercase">{c.militar_posto}</span>
-                            <span className={cn(
-                              "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
-                              c.tipo === 'Temporária' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
-                            )}>
-                              {c.tipo}
-                            </span>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1 max-w-[200px]">
-                          {c.itens.map(item => (
-                            <span key={item.id} className="bg-slate-100 text-[10px] font-medium px-2 py-0.5 rounded border border-slate-200">
-                              {item.nome}
-                            </span>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">
-                            {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'dd/MM/yyyy')}
-                          </span>
-                          <span className="text-[10px] text-slate-400">
-                            {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'HH:mm')}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-right space-x-2">
-                        <button
-                          onClick={() => handlePreview(c)}
-                          className="p-2 text-slate-400 hover:text-primary transition-colors"
-                          title="Visualizar Termo"
-                        >
-                          <Search className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (c.status === 'Ativa') {
-                              await downloadTermoCautela(c);
-                            } else {
-                              await downloadTermoBaixa(c);
-                            }
-                          }}
-                          className="p-2 text-slate-400 hover:text-primary transition-colors"
-                          title="Baixar Termo"
-                        >
-                          <Download className="w-4 h-4" />
-                        </button>
-                        {listTab === 'Ativa' && (
-                          <button
-                            onClick={() => handleBaixa(c)}
-                            className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
-                          >
-                            Dar Baixa
-                          </button>
-                        )}
-                        {listTab === 'Finalizada' && (
-                          <div className="flex items-center justify-end gap-2">
-                            <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">Finalizada</span>
-                            <button
-                              onClick={() => handleDeleteCautela(c.id)}
-                              className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                              title="Excluir Registro"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
+                    <CautelaRow
+                      key={c.id}
+                      c={c}
+                      listTab={listTab}
+                      onPreview={handlePreview}
+                      onBaixa={handleBaixa}
+                      onDelete={handleDeleteCautela}
+                    />
                   ))}
                   {cautelas.filter(c => c.status === listTab).length === 0 && (
                     <tr>
@@ -546,82 +683,14 @@ const CautionArea: React.FC = () => {
             {/* Mobile Cards */}
             <div className="divide-y divide-slate-100 md:hidden">
               {filteredCautelas.map(c => (
-                <div key={c.id} className="p-4 space-y-3">
-                  <div className="flex justify-between items-start">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-bold">{c.militar_nome}</span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-slate-400 uppercase">{c.militar_posto}</span>
-                        <span className={cn(
-                          "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
-                          c.tipo === 'Temporária' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
-                        )}>
-                          {c.tipo}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-end text-right">
-                      <span className="text-sm font-medium">
-                        {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'dd/MM/yyyy')}
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'HH:mm')}
-                      </span>
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase mb-1">Itens</p>
-                    <div className="flex flex-wrap gap-1">
-                      {c.itens.map(item => (
-                        <span key={item.id} className="bg-slate-100 text-[10px] font-medium px-2 py-0.5 rounded border border-slate-200">
-                          {item.nome}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex justify-end items-center gap-2 pt-2 border-t border-slate-100">
-                    <button
-                      onClick={() => handlePreview(c)}
-                      className="p-2 text-slate-400 hover:text-primary transition-colors"
-                      title="Visualizar Termo"
-                    >
-                      <Search className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={async () => {
-                        if (c.status === 'Ativa') {
-                          await downloadTermoCautela(c);
-                        } else {
-                          await downloadTermoBaixa(c);
-                        }
-                      }}
-                      className="p-2 text-slate-400 hover:text-primary transition-colors"
-                      title="Baixar Termo"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    {listTab === 'Ativa' && (
-                      <button
-                        onClick={() => handleBaixa(c)}
-                        className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
-                      >
-                        Dar Baixa
-                      </button>
-                    )}
-                    {listTab === 'Finalizada' && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">Finalizada</span>
-                        <button
-                          onClick={() => handleDeleteCautela(c.id)}
-                          className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                          title="Excluir Registro"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <CautelaMobileCard
+                  key={c.id}
+                  c={c}
+                  listTab={listTab}
+                  onPreview={handlePreview}
+                  onBaixa={handleBaixa}
+                  onDelete={handleDeleteCautela}
+                />
               ))}
               {cautelas.filter(c => c.status === listTab).length === 0 && (
                 <div className="px-6 py-8 text-center text-slate-400 text-sm italic">
