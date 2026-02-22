@@ -10,18 +10,42 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem('auth_cautela') === 'true';
+  });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const login = async (password: string) => {
-    // Login remains for legacy/compatibility but always returns true if needed
-    setIsAuthenticated(true);
-    return true;
+    setErrorMsg(null);
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setIsAuthenticated(true);
+        localStorage.setItem('auth_cautela', 'true');
+        return true;
+      }
+      const msg = data.error || 'Senha incorreta';
+      setErrorMsg(msg);
+      console.warn('Login falhou:', msg);
+      return false;
+    } catch (e) {
+      const msg = 'Erro de conexão no login. Verifique se o servidor está rodando e se as variáveis de ambiente no Vercel estão configuradas.';
+      setErrorMsg(msg);
+      console.error(msg, e);
+      return false;
+    }
   };
 
   const logout = () => {
-    // Logout disabled to keep user always authenticated as requested
-    console.log('Logout desativado');
+    setIsAuthenticated(false);
+    localStorage.removeItem('auth_cautela');
   };
 
   return (
