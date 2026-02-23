@@ -290,13 +290,13 @@ app.get("/api/cautelas", async (req, res) => {
 });
 
 app.post("/api/cautelas", async (req, res) => {
-  const { militar_id, material_ids, observacoes, tipo, assinatura_militar, assinatura_encarregado } = req.body;
+  const { militar_id, material_ids, observacoes, tipo, assinatura_militar, assinatura_encarregado, data_devolucao } = req.body;
 
   try {
     // 1. Create Cautela
     const { data: cautela, error: cautelaError } = await supabase
       .from("cautelas")
-      .insert([{ militar_id, observacoes, tipo: tipo || 'Permanente', assinatura_militar, assinatura_encarregado }])
+      .insert([{ militar_id, observacoes, tipo: tipo || 'Permanente', assinatura_militar, assinatura_encarregado, data_devolucao }])
       .select()
       .single();
 
@@ -359,6 +359,7 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
           observacoes: cautelaAtual.observacoes,
           tipo: cautelaAtual.tipo,
           data_cautela: cautelaAtual.data_cautela,
+          data_devolucao: cautelaAtual.data_devolucao,
           assinatura_militar: cautelaAtual.assinatura_militar,
           assinatura_encarregado: cautelaAtual.assinatura_encarregado,
           status: 'Ativa'
