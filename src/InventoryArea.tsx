@@ -104,7 +104,8 @@ const InventoryArea: React.FC = () => {
     m.tipo === activeSubTab && (
       m.nome.toLowerCase().includes(filter.toLowerCase()) ||
       m.bmp.includes(filter) ||
-      (m.marca && m.marca.toLowerCase().includes(filter.toLowerCase()))
+      (m.marca && m.marca.toLowerCase().includes(filter.toLowerCase())) ||
+      (m.cautelado_por && m.cautelado_por.toLowerCase().includes(filter.toLowerCase()))
     )
   );
 
@@ -281,6 +282,7 @@ const InventoryArea: React.FC = () => {
                 {activeSubTab === 'Outros' && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Lugar</th>}
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Estado</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Status</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Cautelado Por</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b text-center">Ações</th>
               </tr>
             </thead>
@@ -310,6 +312,9 @@ const InventoryArea: React.FC = () => {
                     )}>
                       {m.status}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 text-sm text-slate-600">
+                    {m.cautelado_por || '-'}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-center gap-2">
@@ -386,6 +391,12 @@ const InventoryArea: React.FC = () => {
                   )}>{m.status}</span>
                 </div>
               </div>
+              {m.status === 'Cautelado' && m.cautelado_por && (
+                <div className="text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
+                  <p className="text-slate-500 font-bold uppercase text-[9px] mb-0.5">Cautelado Por</p>
+                  <p className="text-slate-800 font-semibold">{m.cautelado_por}</p>
+                </div>
+              )}
               {activeSubTab === 'Outros' && m.lugar && (
                 <div className="text-xs bg-slate-50 p-2 rounded-lg border border-slate-100">
                   <p className="text-slate-500 font-bold uppercase text-[9px] mb-0.5">Lugar</p>

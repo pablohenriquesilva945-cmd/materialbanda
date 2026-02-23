@@ -155,13 +155,42 @@ app.put("/api/militares/:id", async (req, res) => {
 
 // Materiais
 app.get("/api/materiais", async (req, res) => {
-  const { data, error } = await supabase
-    .from("materiais")
-    .select("*")
-    .order("nome", { ascending: true });
+  try {
+    const { data: materiais, error } = await supabase
+      .from("materiais")
+      .select(`
+        *,
+        cautelas:cautela_itens (
+          cautela:cautelas (
+            status,
+            militar:militares (nome)
+          )
+        )
+      `)
+      .order("nome", { ascending: true });
 
-  if (error) return res.status(400).json({ error: error.message });
-  res.json(data);
+    if (error) throw error;
+
+    // Transform to include cautelado_por
+    const formatted = materiais.map((m: any) => {
+      let cautelado_por = undefined;
+      if (m.status === 'Cautelado' && m.cautelas) {
+        // Find the active caution for this material
+        const activeItem = m.cautelas.find((ci: any) => ci.cautela?.status === 'Ativa');
+        if (activeItem) {
+          cautelado_por = activeItem.cautela.militar?.nome;
+        }
+      }
+
+      const { cautelas, ...rest } = m;
+      return { ...rest, cautelado_por };
+    });
+
+    res.json(formatted);
+  } catch (e: any) {
+    console.error("Erro ao buscar materiais:", e);
+    res.status(400).json({ error: e.message });
+  }
 });
 
 app.post("/api/materiais", async (req, res) => {

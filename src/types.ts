@@ -45,6 +45,7 @@ export interface Material {
   subtipo?: string;
   lugar?: string;
   status: StatusMaterial;
+  cautelado_por?: string;
   created_at: string;
 }
 
