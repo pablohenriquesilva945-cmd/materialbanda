@@ -183,7 +183,7 @@ const InventoryArea: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Marca</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Marca/Modelo</label>
               <input
                 type="text"
                 value={formData.marca}
@@ -267,7 +267,7 @@ const InventoryArea: React.FC = () => {
               value={filter}
               onChange={e => setFilter(e.target.value)}
               className="pl-10 w-full border-slate-300 rounded-full text-sm focus:ring-primary focus:border-primary truncate"
-              placeholder="Buscar por nome, BMP ou marca..."
+              placeholder="Buscar por nome, BMP ou marca/modelo..."
             />
           </div>
         </div>
@@ -277,7 +277,7 @@ const InventoryArea: React.FC = () => {
               <tr className="bg-slate-50">
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Nome</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">BMP</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Marca</th>
+                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Marca/Modelo</th>
                 {activeSubTab === 'Outros' && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Lugar</th>}
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Estado</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Status</th>
@@ -345,7 +345,7 @@ const InventoryArea: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-bold text-slate-900">{m.nome}</p>
-                  <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{m.marca || 'Sem marca'}</p>
+                  <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{m.marca || 'Sem marca/modelo'}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => handleEdit(m)} className="p-2 text-slate-400 hover:text-primary transition-colors bg-slate-50 rounded-lg">
