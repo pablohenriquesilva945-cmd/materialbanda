@@ -107,7 +107,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   const textLines = doc.splitTextToSize(responsibilityText, pageWidth - 40);
   const textHeight = textLines.length * 7; // 7 is approx height with 1.5 line factor
 
-  const signatureY = finalY + textHeight + 25;
+  const signatureY = finalY + textHeight + 15; // Reduced from 25
 
   // Date and Signatures
   const dateStr = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
@@ -118,30 +118,29 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
   // Signature 1: Militar
   doc.setFontSize(10);
-  doc.line(20, signatureY + 35, 90, signatureY + 35);
+  doc.line(20, signatureY + 30, 90, signatureY + 30); // Reduced from 35
   if (cautela.assinatura_militar) {
-    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 5, 50, 25);
+    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 5, 50, 20); // Height reduced from 25
   }
-  doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, signatureY + 40, { align: 'center' });
+  doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, signatureY + 35, { align: 'center' });
   doc.setFont('helvetica', 'normal');
-  doc.text(militarNomeUpper, 55, signatureY + 45, { align: 'center' });
+  doc.text(militarNomeUpper, 55, signatureY + 40, { align: 'center' }); // Adjusted Y
 
   // Signature 2: Conferente
   doc.setFont('helvetica', 'bold');
-  doc.line(120, signatureY + 35, 190, signatureY + 35);
+  doc.line(120, signatureY + 30, 190, signatureY + 30); // Reduced from 35
   if (cautela.assinatura_encarregado) {
-    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 5, 50, 25);
+    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 5, 50, 20); // Height reduced from 25
   }
-  doc.text('CONFERENTE', 155, signatureY + 40, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.text('Banda de Música', 155, signatureY + 45, { align: 'center' });
+  doc.text('CONFERENTE', 155, signatureY + 35, { align: 'center' });
+  // Removed "Banda de Música" as requested
 
   // Signature 3: Chefe da Banda de Música (Centered below)
-  const signatureY2 = signatureY + 65;
+  const signatureY2 = signatureY + 50; // Reduced from 65
   doc.setFont('helvetica', 'bold');
-  doc.line(pageWidth / 2 - 35, signatureY2 + 25, pageWidth / 2 + 35, signatureY2 + 25);
-  doc.text('CHEFE DA BANDA DE MÚSICA', pageWidth / 2, signatureY2 + 30, { align: 'center' });
-  
+  doc.line(pageWidth / 2 - 35, signatureY2 + 20, pageWidth / 2 + 35, signatureY2 + 20); // Reduced from 25
+  doc.text('CHEFE DA BANDA DE MÚSICA', pageWidth / 2, signatureY2 + 25, { align: 'center' }); // Adjusted Y
+
   return doc;
 };
 
