@@ -143,18 +143,46 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   // Removed "Banda de Música" as requested
 
   // Signature 3: Chefe da Banda de Música (Centered below)
-  const signatureY2 = signatureY + 50; // Reduced from 65
+  const signatureY2 = signatureY + 50;
   doc.setFont('helvetica', 'bold');
-  
+  doc.line(pageWidth / 2 - 35, signatureY2 + 20, pageWidth / 2 + 35, signatureY2 + 20);
+  doc.text('CHEFE DA BANDA DE MÚSICA', pageWidth / 2, signatureY2 + 25, { align: 'center' });
+
+  // Gov.br digital signature block (rendered natively, no background)
+  const govBrY = signatureY2 + 32;
+  const centerX = pageWidth / 2;
+
   try {
-    const chefeImg = await loadImage('/assinatura_chefe.png');
-    doc.addImage(chefeImg, 'PNG', pageWidth / 2 - 25, signatureY2 - 10, 50, 25);
+    const govBrLogo = await loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Logo_do_Governo_do_Brasil.svg/120px-Logo_do_Governo_do_Brasil.svg.png');
+    doc.addImage(govBrLogo, 'PNG', centerX - 35, govBrY, 22, 9);
   } catch (e) {
-    console.warn('Could not load chefe signature', e);
+    // fallback: draw "gov.br" text
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(0, 82, 165);
+    doc.text('gov', centerX - 30, govBrY + 6);
+    doc.setTextColor(0, 150, 57);
+    doc.text('.br', centerX - 22, govBrY + 6);
   }
 
-  doc.line(pageWidth / 2 - 35, signatureY2 + 20, pageWidth / 2 + 35, signatureY2 + 20); // Reduced from 25
-  doc.text('CHEFE DA BANDA DE MÚSICA', pageWidth / 2, signatureY2 + 25, { align: 'center' }); // Adjusted Y
+  // Signature text block
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Documento assinado digitalmente', centerX - 10, govBrY + 2);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(7);
+  doc.setTextColor(0, 0, 0);
+  doc.text('VALDECI INACIO PEREIRA', centerX - 10, govBrY + 6);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(6);
+  doc.setTextColor(100, 100, 100);
+  doc.text('Data: 10/09/2025 18:46:07-0300', centerX - 10, govBrY + 10);
+  doc.setTextColor(0, 102, 204);
+  doc.text('Verifique em https://validar.iti.gov.br', centerX - 10, govBrY + 14);
+
+  // Reset text color
+  doc.setTextColor(0, 0, 0);
 
   return doc;
 };
