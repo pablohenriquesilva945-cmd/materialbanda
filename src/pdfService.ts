@@ -30,6 +30,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'bold');
   doc.text('MINISTÉRIO DA DEFESA', pageWidth / 2, 42, { align: 'center' });
   doc.text('COMANDO DA AERONÁUTICA', pageWidth / 2, 47, { align: 'center' });
+  doc.text('ESCOLA DE ESPECIALISTAS DE AERONÁUTICA', pageWidth / 2, 47, { align: 'center' });
   doc.text('BANDA DE MÚSICA', pageWidth / 2, 52, { align: 'center' });
 
   doc.setFontSize(14);
