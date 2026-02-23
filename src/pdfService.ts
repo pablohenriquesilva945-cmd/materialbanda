@@ -145,6 +145,14 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   // Signature 3: Chefe da Banda de Música (Centered below)
   const signatureY2 = signatureY + 50; // Reduced from 65
   doc.setFont('helvetica', 'bold');
+  
+  try {
+    const chefeImg = await loadImage('/assinatura_chefe.png');
+    doc.addImage(chefeImg, 'PNG', pageWidth / 2 - 25, signatureY2 - 10, 50, 25);
+  } catch (e) {
+    console.warn('Could not load chefe signature', e);
+  }
+
   doc.line(pageWidth / 2 - 35, signatureY2 + 20, pageWidth / 2 + 35, signatureY2 + 20); // Reduced from 25
   doc.text('CHEFE DA BANDA DE MÚSICA', pageWidth / 2, signatureY2 + 25, { align: 'center' }); // Adjusted Y
 
