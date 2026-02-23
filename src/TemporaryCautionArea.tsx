@@ -44,7 +44,7 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
     onBaixa: (c: Cautela) => void,
     onDelete: (id: number) => void
 }) => {
-    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(startOfDay(new Date(c.data_devolucao)));
+    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(startOfDay(new Date(c.data_devolucao.replace(' ', 'T'))));
 
     return (
         <tr className={cn("hover:bg-slate-50/50 transition-colors", isOverdue && "bg-red-50 hover:bg-red-100/50 border-l-4 border-l-red-500")}>
@@ -78,8 +78,8 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
                         <span className={cn("text-sm font-semibold", isOverdue && "text-red-700 font-bold")}>
                             {listTab === 'Ativa' ? 'Prazo: ' : 'Devolvido em: '}
                             {listTab === 'Ativa'
-                                ? (c.data_devolucao ? format(new Date(c.data_devolucao), 'dd/MM/yyyy') : 'Não definido')
-                                : (c.data_baixa ? format(new Date(c.data_baixa), 'dd/MM/yyyy HH:mm') : 'N/A')}
+                                ? (c.data_devolucao ? format(new Date(c.data_devolucao.replace(' ', 'T')), 'dd/MM/yyyy') : 'Não definido')
+                                : (c.data_baixa ? format(new Date(c.data_baixa.replace(' ', 'T')), 'dd/MM/yyyy HH:mm') : 'N/A')}
                         </span>
                     </div>
                     <span className="text-[10px] text-slate-400">
@@ -140,7 +140,7 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
     onBaixa: (c: Cautela) => void,
     onDelete: (id: number) => void
 }) => {
-    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(startOfDay(new Date(c.data_devolucao)));
+    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(startOfDay(new Date(c.data_devolucao.replace(' ', 'T'))));
 
     return (
         <div className={cn("p-4 space-y-3", isOverdue && "bg-red-50/50")}>
@@ -161,8 +161,8 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
                     <span className={cn("text-xs font-bold px-2 py-0.5 rounded shrink-0", isOverdue ? "bg-red-600 text-white" : "text-amber-600 bg-amber-50")}>
                         {listTab === 'Ativa' ? 'Prazo: ' : 'Dev: '}
                         {listTab === 'Ativa'
-                            ? (c.data_devolucao ? format(new Date(c.data_devolucao), 'dd/MM/yyyy') : 'N/D')
-                            : (c.data_baixa ? format(new Date(c.data_baixa), 'dd/MM/yyyy') : 'N/D')}
+                            ? (c.data_devolucao ? format(new Date(c.data_devolucao.replace(' ', 'T')), 'dd/MM/yyyy') : 'N/D')
+                            : (c.data_baixa ? format(new Date(c.data_baixa.replace(' ', 'T')), 'dd/MM/yyyy') : 'N/D')}
                     </span>
                     <span className="text-[9px] text-slate-400">
                         {format(new Date(c.data_cautela), 'dd/MM/yyyy')}
@@ -289,7 +289,7 @@ const TemporaryCautionArea: React.FC = () => {
             material_ids: selectedMateriais,
             observacoes,
             tipo: 'Temporária',
-            data_devolucao: dataDevolucao ? new Date(dataDevolucao).toISOString() : null,
+            data_devolucao: dataDevolucao ? new Date(`${dataDevolucao}T12:00:00Z`).toISOString() : null,
             assinatura_militar,
             assinatura_encarregado
         };

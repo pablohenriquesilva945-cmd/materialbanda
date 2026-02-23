@@ -337,6 +337,7 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
           observacoes: cautelaAtual.observacoes,
           tipo: cautelaAtual.tipo,
           data_cautela: cautelaAtual.data_cautela,
+          data_devolucao: cautelaAtual.data_devolucao,
           assinatura_militar: cautelaAtual.assinatura_militar,
           assinatura_encarregado: cautelaAtual.assinatura_encarregado,
           status: 'Ativa'
