@@ -452,13 +452,15 @@ app.get("/api/stats", async (req, res) => {
     const { count: cautelasAtivas } = await supabase.from("cautelas").select("*", { count: 'exact', head: true }).eq("status", "Ativa");
     const { count: emManutencao } = await supabase.from("materiais").select("*", { count: 'exact', head: true }).eq("status", "Manutenção");
 
+    // Overdue = deadline strictly before today (start of today in local time = end of yesterday)
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
     const { count: atrasados } = await supabase
       .from("cautelas")
       .select("*", { count: 'exact', head: true })
       .eq("status", "Ativa")
       .eq("tipo", "Temporária")
-      // Use start of today: overdue only if deadline date is before today (not same day)
-      .lt("data_devolucao", new Date(new Date().toDateString()).toISOString());
+      .lt("data_devolucao", startOfToday.toISOString());
 
     res.json({
       militares: militares || 0,
