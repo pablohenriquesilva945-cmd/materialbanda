@@ -147,39 +147,27 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   const signatureY2 = signatureY + 50;
   const centerX = pageWidth / 2;
 
-  // Gov.br digital signature block — rendered ABOVE the signature line
-  const govBrY = signatureY2 + 1; // starts just above the line area
-
+  let commanderSignature = null;
   try {
-    const govBrLogo = await loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Logo_do_Governo_do_Brasil.svg/120px-Logo_do_Governo_do_Brasil.svg.png');
-    doc.addImage(govBrLogo, 'PNG', centerX - 35, govBrY, 20, 8);
+    const res = await fetch('/api/config/commander-signature');
+    if (res.ok) {
+      const data = await res.json();
+      commanderSignature = data.signature;
+    }
   } catch (e) {
-    // fallback: draw "gov.br" text
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(0, 82, 165);
-    doc.text('gov', centerX - 28, govBrY + 5);
-    doc.setTextColor(0, 150, 57);
-    doc.text('.br', centerX - 20, govBrY + 5);
+    console.warn('Could not fetch commander signature', e);
   }
 
-  // Signature text (to the right of the logo)
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.5);
-  doc.setTextColor(100, 100, 100);
-  doc.text('Documento assinado digitalmente', centerX - 12, govBrY + 2);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(6.5);
-  doc.setTextColor(0, 0, 0);
-  doc.text('VALDECI INACIO PEREIRA', centerX - 12, govBrY + 6.5);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(5.5);
-  doc.setTextColor(100, 100, 100);
-  doc.text('Data: 10/09/2025 18:46:07-0300', centerX - 12, govBrY + 10.5);
-  doc.setTextColor(0, 102, 204);
-  doc.text('Verifique em https://validar.iti.gov.br', centerX - 12, govBrY + 14.5);
+  // If we have a signature, render it ABOVE the signature line
+  if (commanderSignature) {
+    try {
+      doc.addImage(commanderSignature, 'PNG', centerX - 25, signatureY2 - 5, 50, 20);
+    } catch (e) {
+      console.warn('Could not add commander signature image to PDF', e);
+    }
+  }
 
-  // Reset
+  // Reset text color and size just in case
   doc.setTextColor(0, 0, 0);
   doc.setFontSize(10);
 

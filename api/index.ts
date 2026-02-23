@@ -102,6 +102,52 @@ app.post("/api/update-password", async (req, res) => {
   }
 });
 
+// Configuration
+app.get("/api/config/commander-signature", async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from("configuracao")
+      .select("value")
+      .eq("key", "commander_signature")
+      .maybeSingle();
+
+    if (error) throw error;
+    res.json({ signature: data ? data.value : null });
+  } catch (e: any) {
+    console.error("Erro ao buscar assinatura do chefe:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/config/commander-signature", async (req, res) => {
+  const { signature } = req.body;
+  try {
+    // Check if exists
+    const { data: existing } = await supabase
+      .from("configuracao")
+      .select("id")
+      .eq("key", "commander_signature")
+      .maybeSingle();
+
+    if (existing) {
+      const { error } = await supabase
+        .from("configuracao")
+        .update({ value: signature })
+        .eq("key", "commander_signature");
+      if (error) throw error;
+    } else {
+      const { error } = await supabase
+        .from("configuracao")
+        .insert([{ key: "commander_signature", value: signature }]);
+      if (error) throw error;
+    }
+    res.json({ success: true });
+  } catch (e: any) {
+    console.error("Erro ao salvar assinatura do chefe:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Militares
 app.get("/api/militares", async (req, res) => {
   const { data, error } = await supabase

@@ -6,6 +6,7 @@ import MilitaryArea from './MilitaryArea';
 import InventoryArea from './InventoryArea';
 import CautionArea from './CautionArea';
 import TemporaryCautionArea from './TemporaryCautionArea';
+import SettingsArea from './SettingsArea';
 import { LogIn } from 'lucide-react';
 
 const AppContent: React.FC = () => {
@@ -71,6 +72,7 @@ const AppContent: React.FC = () => {
       {activeTab === 'instrumento' && <InventoryArea />}
       {activeTab === 'cautela' && <CautionArea />}
       {activeTab === 'temporaria' && <TemporaryCautionArea />}
+      {activeTab === 'configuracoes' && <SettingsArea />}
     </Layout>
   );
 };
