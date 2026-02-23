@@ -457,7 +457,8 @@ app.get("/api/stats", async (req, res) => {
       .select("*", { count: 'exact', head: true })
       .eq("status", "Ativa")
       .eq("tipo", "Temporária")
-      .lt("data_devolucao", new Date().toISOString());
+      // Use start of today: overdue only if deadline date is before today (not same day)
+      .lt("data_devolucao", new Date(new Date().toDateString()).toISOString());
 
     res.json({
       militares: militares || 0,

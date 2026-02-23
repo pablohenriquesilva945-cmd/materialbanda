@@ -44,7 +44,14 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
     onBaixa: (c: Cautela) => void,
     onDelete: (id: number) => void
 }) => {
-    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(new Date(c.data_devolucao.replace(' ', 'T')));
+    const isOverdue = listTab === 'Ativa' && c.data_devolucao && (() => {
+        const prazo = new Date(c.data_devolucao!.replace(' ', 'T'));
+        const hoje = new Date();
+        // Only overdue if the deadline date is strictly before today (not same day)
+        prazo.setHours(0, 0, 0, 0);
+        hoje.setHours(0, 0, 0, 0);
+        return prazo < hoje;
+    })();
 
     return (
         <tr className={cn("hover:bg-slate-50/50 transition-colors", isOverdue && "bg-red-50 hover:bg-red-100/50 border-l-4 border-l-red-500")}>
@@ -140,7 +147,14 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
     onBaixa: (c: Cautela) => void,
     onDelete: (id: number) => void
 }) => {
-    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(new Date(c.data_devolucao.replace(' ', 'T')));
+    const isOverdue = listTab === 'Ativa' && c.data_devolucao && (() => {
+        const prazo = new Date(c.data_devolucao!.replace(' ', 'T'));
+        const hoje = new Date();
+        // Only overdue if the deadline date is strictly before today (not same day)
+        prazo.setHours(0, 0, 0, 0);
+        hoje.setHours(0, 0, 0, 0);
+        return prazo < hoje;
+    })();
 
     return (
         <div className={cn("p-4 space-y-3", isOverdue && "bg-red-50/50")}>
