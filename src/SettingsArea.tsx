@@ -28,24 +28,25 @@ const SettingsArea: React.FC = () => {
         sigRef.current?.clear();
     };
 
-    const handleRemoveExisting = () => {
+    const handleRemoveExisting = async () => {
+        // Optionally remove from DB immediately, or just let them overwrite.
+        // We'll let them overwrite by clearing local state.
         setSignature(null);
     };
 
     const handleSave = async () => {
         if (signature) {
-            // If we are just keeping the existing one, nothing to save, or maybe we don't care.
             setMessage({ text: 'Assinatura mantida e salva com sucesso!', type: 'success' });
             setTimeout(() => setMessage({ text: '', type: '' }), 3000);
             return;
         }
 
-        if (sigRef.current?.isEmpty()) {
+        if (!sigRef.current || sigRef.current.isEmpty()) {
             setMessage({ text: 'Por favor, assine antes de salvar.', type: 'error' });
             return;
         }
 
-        const newSignature = sigRef.current?.getCanvas().toDataURL('image/png') || '';
+        const newSignature = sigRef.current.getCanvas().toDataURL('image/png') || '';
         setIsSaving(true);
         try {
             const res = await fetch('/api/config/commander-signature', {
@@ -58,16 +59,17 @@ const SettingsArea: React.FC = () => {
 
             if (res.ok) {
                 setSignature(newSignature);
-                setMessage({ text: 'Assinatura salva com sucesso!', type: 'success' });
+                setMessage({ text: 'Assinatura atualizada com sucesso!', type: 'success' });
             } else {
-                setMessage({ text: 'Erro ao salvar assinatura.', type: 'error' });
+                const errData = await res.json();
+                setMessage({ text: `Erro ao salvar: ${errData.error || 'Desconhecido'}`, type: 'error' });
             }
         } catch (e) {
             console.error("Erro:", e);
             setMessage({ text: 'Erro inesperado ao salvar.', type: 'error' });
         } finally {
             setIsSaving(false);
-            setTimeout(() => setMessage({ text: '', type: '' }), 3000);
+            setTimeout(() => setMessage({ text: '', type: '' }), 4000);
         }
     };
 
