@@ -125,7 +125,7 @@ app.post("/api/config/commander-signature", async (req, res) => {
     // Check if exists
     const { data: existing } = await supabase
       .from("configuracao")
-      .select("id")
+      .select("key")
       .eq("key", "commander_signature")
       .maybeSingle();
 
