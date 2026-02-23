@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, Music, Handshake, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Users, Music, Handshake, LogOut, Menu, X, Clock } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { cn } from './utils';
 
@@ -18,6 +18,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
     { id: 'militar', label: 'Militar', icon: Users },
     { id: 'instrumento', label: 'Instrumento', icon: Music },
     { id: 'cautela', label: 'Cautela / Baixa', icon: Handshake },
+    { id: 'temporaria', label: 'Cautela Temporária', icon: Clock },
   ];
 
   const navContent = (

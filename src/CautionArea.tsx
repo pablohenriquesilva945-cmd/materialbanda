@@ -215,7 +215,6 @@ const CautionArea: React.FC = () => {
 
   const [selectedMilitar, setSelectedMilitar] = useState<string>('');
   const [selectedMateriais, setSelectedMateriais] = useState<number[]>([]);
-  const [tipoCautela, setTipoCautela] = useState<'Permanente' | 'Temporária'>('Permanente');
   const [observacoes, setObservacoes] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
   const [lastCautelaId, setLastCautelaId] = useState<number | null>(null);
@@ -294,7 +293,7 @@ const CautionArea: React.FC = () => {
         militar_id: parseInt(selectedMilitar),
         material_ids: selectedMateriais,
         observacoes,
-        tipo: tipoCautela,
+        tipo: 'Permanente',
         assinatura_militar,
         assinatura_encarregado
       })
@@ -306,7 +305,6 @@ const CautionArea: React.FC = () => {
       setShowSuccess(true);
       setSelectedMilitar('');
       setSelectedMateriais([]);
-      setTipoCautela('Permanente');
       setObservacoes('');
       fetchData();
     }
@@ -408,6 +406,7 @@ const CautionArea: React.FC = () => {
   const filteredCautelas = useMemo(() => {
     const search = debouncedRecordSearch.toLowerCase();
     return cautelas.filter(c =>
+      c.tipo === 'Permanente' &&
       c.status === listTab && (
         c.militar_nome.toLowerCase().includes(search) ||
         c.militar_saram.includes(search) ||
@@ -565,36 +564,6 @@ const CautionArea: React.FC = () => {
                     <option key={m.id} value={m.id}>{m.nome} ({m.posto})</option>
                   ))}
                 </select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Tipo de Cautela</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setTipoCautela('Permanente')}
-                    className={cn(
-                      "py-2 px-2 sm:px-4 rounded-xl text-[11px] sm:text-xs font-bold border transition-all",
-                      tipoCautela === 'Permanente'
-                        ? "bg-primary text-white border-primary shadow-md"
-                        : "bg-white text-slate-500 border-slate-200 hover:border-primary/30"
-                    )}
-                  >
-                    Permanente
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setTipoCautela('Temporária')}
-                    className={cn(
-                      "py-2 px-2 sm:px-4 rounded-xl text-[11px] sm:text-xs font-bold border transition-all",
-                      tipoCautela === 'Temporária'
-                        ? "bg-amber-500 text-white border-amber-500 shadow-md"
-                        : "bg-white text-slate-500 border-slate-200 hover:border-amber-300"
-                    )}
-                  >
-                    Temporária
-                  </button>
-                </div>
               </div>
 
               <div className="space-y-1.5">

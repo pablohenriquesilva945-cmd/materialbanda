@@ -65,6 +65,7 @@ export interface Cautela {
   observacoes?: string;
   status: 'Ativa' | 'Finalizada';
   tipo: 'Permanente' | 'Temporária';
+  data_devolucao?: string;
   assinatura_militar?: string;
   assinatura_encarregado?: string;
   itens: CautelaItem[];
