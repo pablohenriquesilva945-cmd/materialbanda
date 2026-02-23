@@ -111,8 +111,8 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   let signatureY = finalY + textHeight + 15;
 
   // Check if we need a new page for signatures
-  // A4 height is 297mm. Let's say we need at least 80mm for the signature block.
-  if (signatureY + 60 > 280) {
+  // A4 height is 297mm. With the compact layout, we need about 50mm.
+  if (signatureY + 50 > 280) {
     doc.addPage();
     signatureY = 25; // Reset Y for new page
   }
@@ -124,27 +124,31 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
   const militarNomeUpper = cautela.militar_nome.toUpperCase();
 
-  // Signature 1: Militar
-  doc.setFontSize(10);
-  doc.line(20, signatureY + 30, 90, signatureY + 30); // Reduced from 35
+  // ----- ROW 1: Militar (Left) & Conferente (Right) -----
+  const row1Y = signatureY + 25; // Line position
+  doc.setFontSize(9);
+
+  // Signature 1: Militar (Left)
+  doc.line(20, row1Y, 90, row1Y);
   if (cautela.assinatura_militar) {
-    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 5, 50, 20); // Height reduced from 25
+    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 5, 50, 18);
   }
-  doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, signatureY + 35, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.text(militarNomeUpper, 55, signatureY + 40, { align: 'center' }); // Adjusted Y
-
-  // Signature 2: Conferente
   doc.setFont('helvetica', 'bold');
-  doc.line(120, signatureY + 30, 190, signatureY + 30); // Reduced from 35
-  if (cautela.assinatura_encarregado) {
-    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 5, 50, 20); // Height reduced from 25
-  }
-  doc.text('CONFERENTE', 155, signatureY + 35, { align: 'center' });
-  // Removed "Banda de Música" as requested
+  doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, row1Y + 5, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.text(militarNomeUpper, 55, row1Y + 9, { align: 'center' });
 
-  // Signature 3: Chefe da Banda de Música (Centered below)
-  const signatureY2 = signatureY + 50;
+  // Signature 2: Conferente (Right)
+  doc.setFont('helvetica', 'bold');
+  doc.line(120, row1Y, 190, row1Y);
+  if (cautela.assinatura_encarregado) {
+    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 5, 50, 18);
+  }
+  doc.text('CONFERENTE', 155, row1Y + 5, { align: 'center' });
+
+  // ----- ROW 2: Chefe da Banda de Música (Center, properly spaced below) -----
+  // Placed right below the first two signatures.
+  const row2Y = row1Y + 28; // 28 units below the first row of signatures
   const centerX = pageWidth / 2;
 
   let commanderSignature = null;
@@ -158,23 +162,19 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
     console.warn('Could not fetch commander signature', e);
   }
 
-  // If we have a signature, render it ABOVE the signature line
   if (commanderSignature) {
     try {
-      doc.addImage(commanderSignature, 'PNG', centerX - 25, signatureY2 - 5, 50, 20);
+      doc.addImage(commanderSignature, 'PNG', centerX - 25, row2Y - 18, 50, 18);
     } catch (e) {
       console.warn('Could not add commander signature image to PDF', e);
     }
   }
 
-  // Reset text color and size just in case
   doc.setTextColor(0, 0, 0);
-  doc.setFontSize(10);
-
-  // Signature line and label below the block
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.line(centerX - 35, signatureY2 + 20, centerX + 35, signatureY2 + 20);
-  doc.text('CHEFE DA BANDA DE MÚSICA', centerX, signatureY2 + 25, { align: 'center' });
+  doc.line(centerX - 35, row2Y, centerX + 35, row2Y);
+  doc.text('CHEFE DA BANDA DE MÚSICA', centerX, row2Y + 5, { align: 'center' });
 
   return doc;
 };
