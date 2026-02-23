@@ -160,7 +160,7 @@ app.get("/api/materiais", async (req, res) => {
       .from("materiais")
       .select(`
         *,
-        cautelas:cautela_itens (
+        itens_cautela:cautela_itens (
           cautela:cautelas (
             status,
             militar:militares (nome)
@@ -174,15 +174,17 @@ app.get("/api/materiais", async (req, res) => {
     // Transform to include cautelado_por
     const formatted = materiais.map((m: any) => {
       let cautelado_por = undefined;
-      if (m.status === 'Cautelado' && m.cautelas) {
-        // Find the active caution for this material
-        const activeItem = m.cautelas.find((ci: any) => ci.cautela?.status === 'Ativa');
-        if (activeItem) {
-          cautelado_por = activeItem.cautela.militar?.nome;
+
+      // Look for active caution in joined data
+      const items = m.itens_cautela || [];
+      if (m.status === 'Cautelado' && Array.isArray(items)) {
+        const activeItem = items.find((ci: any) => ci.cautela?.status === 'Ativa');
+        if (activeItem && activeItem.cautela?.militar) {
+          cautelado_por = activeItem.cautela.militar.nome;
         }
       }
 
-      const { cautelas, ...rest } = m;
+      const { itens_cautela, ...rest } = m;
       return { ...rest, cautelado_por };
     });
 
