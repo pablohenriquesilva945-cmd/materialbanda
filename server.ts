@@ -160,10 +160,10 @@ app.get("/api/materiais", async (req, res) => {
       .from("materiais")
       .select(`
         *,
-        itens_cautela:cautela_itens (
-          cautela:cautelas (
+        cautela_itens (
+          cautelas (
             status,
-            militar:militares (nome)
+            militares (nome)
           )
         )
       `)
@@ -175,16 +175,15 @@ app.get("/api/materiais", async (req, res) => {
     const formatted = materiais.map((m: any) => {
       let cautelado_por = undefined;
 
-      // Look for active caution in joined data
-      const items = m.itens_cautela || [];
-      if (m.status === 'Cautelado' && Array.isArray(items)) {
-        const activeItem = items.find((ci: any) => ci.cautela?.status === 'Ativa');
-        if (activeItem && activeItem.cautela?.militar) {
-          cautelado_por = activeItem.cautela.militar.nome;
+      // Look for active caution in joined data (plural paths confirmed by diagnostic script)
+      if (m.cautela_itens && Array.isArray(m.cautela_itens)) {
+        const activeItem = m.cautela_itens.find((ci: any) => ci.cautelas?.status === 'Ativa');
+        if (activeItem && activeItem.cautelas?.militares) {
+          cautelado_por = activeItem.cautelas.militares.nome;
         }
       }
 
-      const { itens_cautela, ...rest } = m;
+      const { cautela_itens, ...rest } = m;
       return { ...rest, cautelado_por };
     });
 
