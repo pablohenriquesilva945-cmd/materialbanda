@@ -30,33 +30,33 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'bold');
   doc.text('MINISTÉRIO DA DEFESA', pageWidth / 2, 42, { align: 'center' });
   doc.text('COMANDO DA AERONÁUTICA', pageWidth / 2, 47, { align: 'center' });
-  doc.text('ESCOLA DE ESPECIALISTAS DE AERONÁUTICA', pageWidth / 2, 47, { align: 'center' });
-  doc.text('BANDA DE MÚSICA', pageWidth / 2, 52, { align: 'center' });
+  doc.text('ESCOLA DE ESPECIALISTAS DE AERONÁUTICA', pageWidth / 2, 52, { align: 'center' });
+  doc.text('BANDA DE MÚSICA', pageWidth / 2, 57, { align: 'center' });
 
   doc.setFontSize(14);
   const title = type === 'Cautela'
     ? 'TERMO DE RESPONSABILIDADE E CAUTELA DE MATERIAL'
     : 'TERMO DE DEVOLUÇÃO E BAIXA DE MATERIAL';
-  doc.text(title, pageWidth / 2, 68, { align: 'center' });
+  doc.text(title, pageWidth / 2, 73, { align: 'center' });
 
   // 1. IDENTIFICAÇÃO DO MILITAR
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text('1. IDENTIFICAÇÃO DO MILITAR', 20, 85);
+  doc.text('1. IDENTIFICAÇÃO DO MILITAR', 20, 90);
   doc.setFont('helvetica', 'normal');
   const rectHeight = type === 'Baixa' ? 35 : 25;
-  doc.rect(20, 90, pageWidth - 40, rectHeight);
-  doc.text(`Nome: ${cautela.militar_nome}`, 25, 97);
-  doc.text(`SARAM: ${cautela.militar_saram}`, 120, 97);
-  doc.text(`Posto/Graduação: ${cautela.militar_posto}`, 25, 107);
-  doc.text(`Tipo de Cautela: ${cautela.tipo}`, 120, 107);
+  doc.rect(20, 95, pageWidth - 40, rectHeight);
+  doc.text(`Nome: ${cautela.militar_nome}`, 25, 102);
+  doc.text(`SARAM: ${cautela.militar_saram}`, 120, 102);
+  doc.text(`Posto/Graduação: ${cautela.militar_posto}`, 25, 112);
+  doc.text(`Tipo de Cautela: ${cautela.tipo}`, 120, 112);
 
   if (type === 'Baixa') {
-    doc.text(`Data da Cautela: ${format(new Date(cautela.data_cautela), 'dd/MM/yyyy')}`, 25, 117);
+    doc.text(`Data da Cautela: ${format(new Date(cautela.data_cautela), 'dd/MM/yyyy')}`, 25, 122);
   }
 
   // 2. DESCRIÇÃO DO MATERIAL
-  const section2Y = 90 + rectHeight + 15;
+  const section2Y = 95 + rectHeight + 15;
   doc.setFont('helvetica', 'bold');
   doc.text('2. DESCRIÇÃO DO MATERIAL', 20, section2Y);
 
