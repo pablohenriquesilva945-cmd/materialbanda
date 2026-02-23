@@ -107,7 +107,14 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   const textLines = doc.splitTextToSize(responsibilityText, pageWidth - 40);
   const textHeight = textLines.length * 7; // 7 is approx height with 1.5 line factor
 
-  const signatureY = finalY + textHeight + 15; // Reduced from 25
+  let signatureY = finalY + textHeight + 15;
+
+  // Check if we need a new page for signatures
+  // A4 height is 297mm. Let's say we need at least 80mm for the signature block.
+  if (signatureY + 60 > 280) {
+    doc.addPage();
+    signatureY = 25; // Reset Y for new page
+  }
 
   // Date and Signatures
   const dateStr = format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
