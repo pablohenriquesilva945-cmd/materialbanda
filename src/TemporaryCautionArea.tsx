@@ -44,7 +44,7 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
     onBaixa: (c: Cautela) => void,
     onDelete: (id: number) => void
 }) => {
-    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(startOfDay(new Date(c.data_devolucao.replace(' ', 'T'))));
+    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(new Date(c.data_devolucao.replace(' ', 'T')));
 
     return (
         <tr className={cn("hover:bg-slate-50/50 transition-colors", isOverdue && "bg-red-50 hover:bg-red-100/50 border-l-4 border-l-red-500")}>
@@ -140,7 +140,7 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
     onBaixa: (c: Cautela) => void,
     onDelete: (id: number) => void
 }) => {
-    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(startOfDay(new Date(c.data_devolucao.replace(' ', 'T'))));
+    const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(new Date(c.data_devolucao.replace(' ', 'T')));
 
     return (
         <div className={cn("p-4 space-y-3", isOverdue && "bg-red-50/50")}>
@@ -255,7 +255,7 @@ const TemporaryCautionArea: React.FC = () => {
         return cautelas.filter(c =>
             c.status === 'Ativa' &&
             c.data_devolucao &&
-            isPast(startOfDay(new Date(c.data_devolucao.replace(' ', 'T'))))
+            isPast(new Date(c.data_devolucao.replace(' ', 'T')))
         ).length;
     }, [cautelas]);
 
