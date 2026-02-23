@@ -76,11 +76,14 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
                     <div className="flex items-center gap-1 text-slate-700">
                         <Calendar className="w-3 h-3 text-slate-400" />
                         <span className={cn("text-sm font-medium", isOverdue && "text-red-600 font-bold")}>
-                            Devolução: {c.data_devolucao ? format(new Date(c.data_devolucao), 'dd/MM/yyyy') : 'N/A'}
+                            {listTab === 'Ativa' ? 'Prazo: ' : 'Devolvido em: '}
+                            {listTab === 'Ativa'
+                                ? (c.data_devolucao ? format(new Date(c.data_devolucao), 'dd/MM/yyyy') : 'Não definido')
+                                : (c.data_baixa ? format(new Date(c.data_baixa), 'dd/MM/yyyy HH:mm') : 'N/A')}
                         </span>
                     </div>
                     <span className="text-[10px] text-slate-400">
-                        Retirada: {format(new Date(c.data_cautela), 'dd/MM/yyyy HH:mm')}
+                        Data Retirada: {format(new Date(c.data_cautela), 'dd/MM/yyyy HH:mm')}
                     </span>
                 </div>
             </td>
@@ -155,7 +158,10 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
                 </div>
                 <div className="flex flex-col items-end text-right">
                     <span className={cn("text-xs font-bold", isOverdue ? "text-red-600" : "text-amber-600")}>
-                        Dev: {c.data_devolucao ? format(new Date(c.data_devolucao), 'dd/MM/yyyy') : 'N/A'}
+                        {listTab === 'Ativa' ? 'Prazo: ' : 'Dev: '}
+                        {listTab === 'Ativa'
+                            ? (c.data_devolucao ? format(new Date(c.data_devolucao), 'dd/MM/yyyy') : 'N/D')
+                            : (c.data_baixa ? format(new Date(c.data_baixa), 'dd/MM/yyyy') : 'N/D')}
                     </span>
                     <span className="text-[9px] text-slate-400">
                         {format(new Date(c.data_cautela), 'dd/MM/yyyy')}
@@ -285,7 +291,7 @@ const TemporaryCautionArea: React.FC = () => {
                 material_ids: selectedMateriais,
                 observacoes,
                 tipo: 'Temporária',
-                data_devolucao: new Date(dataDevolucao).toISOString(),
+                data_devolucao: dataDevolucao ? new Date(dataDevolucao).toISOString() : null,
                 assinatura_militar,
                 assinatura_encarregado
             })
