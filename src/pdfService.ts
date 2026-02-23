@@ -116,6 +116,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
   const militarNomeUpper = cautela.militar_nome.toUpperCase();
 
+  // Signature 1: Militar
   doc.setFontSize(10);
   doc.line(20, signatureY + 35, 90, signatureY + 35);
   if (cautela.assinatura_militar) {
@@ -125,15 +126,22 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'normal');
   doc.text(militarNomeUpper, 55, signatureY + 45, { align: 'center' });
 
+  // Signature 2: Conferente
   doc.setFont('helvetica', 'bold');
   doc.line(120, signatureY + 35, 190, signatureY + 35);
   if (cautela.assinatura_encarregado) {
     doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 5, 50, 25);
   }
-  doc.text('ENCARREGADO DO MATERIAL', 155, signatureY + 40, { align: 'center' });
+  doc.text('CONFERENTE', 155, signatureY + 40, { align: 'center' });
   doc.setFont('helvetica', 'normal');
   doc.text('Banda de Música', 155, signatureY + 45, { align: 'center' });
 
+  // Signature 3: Chefe da Banda de Música (Centered below)
+  const signatureY2 = signatureY + 65;
+  doc.setFont('helvetica', 'bold');
+  doc.line(pageWidth / 2 - 35, signatureY2 + 25, pageWidth / 2 + 35, signatureY2 + 25);
+  doc.text('CHEFE DA BANDA DE MÚSICA', pageWidth / 2, signatureY2 + 30, { align: 'center' });
+  
   return doc;
 };
 
