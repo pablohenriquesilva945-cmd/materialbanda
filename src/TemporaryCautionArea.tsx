@@ -47,13 +47,13 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
     const isOverdue = listTab === 'Ativa' && c.data_devolucao && isPast(startOfDay(new Date(c.data_devolucao)));
 
     return (
-        <tr className={cn("hover:bg-slate-50/50 transition-colors", isOverdue && "bg-red-50/30 hover:bg-red-50/50")}>
+        <tr className={cn("hover:bg-slate-50/50 transition-colors", isOverdue && "bg-red-50 hover:bg-red-100/50 border-l-4 border-l-red-500")}>
             <td className="px-6 py-4">
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-bold">{c.militar_nome}</span>
                         {isOverdue && (
-                            <span className="flex items-center gap-1 bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse">
+                            <span className="flex items-center gap-1 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm animate-pulse ring-2 ring-red-200">
                                 <AlertTriangle className="w-3 h-3" />
                                 ATRASADA
                             </span>
@@ -75,7 +75,7 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
                 <div className="flex flex-col">
                     <div className="flex items-center gap-1 text-slate-700">
                         <Calendar className="w-3 h-3 text-slate-400" />
-                        <span className={cn("text-sm font-medium", isOverdue && "text-red-600 font-bold")}>
+                        <span className={cn("text-sm font-semibold", isOverdue && "text-red-700 font-bold")}>
                             {listTab === 'Ativa' ? 'Prazo: ' : 'Devolvido em: '}
                             {listTab === 'Ativa'
                                 ? (c.data_devolucao ? format(new Date(c.data_devolucao), 'dd/MM/yyyy') : 'Não definido')
@@ -149,15 +149,16 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-bold">{c.militar_nome}</span>
                         {isOverdue && (
-                            <span className="flex items-center gap-1 bg-red-100 text-red-700 text-[10px] font-bold px-1.5 py-0.5 rounded animate-pulse">
+                            <span className="flex items-center gap-1 bg-red-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-sm animate-pulse ring-2 ring-red-200">
                                 <AlertTriangle className="w-3 h-3" />
+                                ATRASADA
                             </span>
                         )}
                     </div>
                     <span className="text-[10px] text-slate-400 uppercase">{c.militar_posto}</span>
                 </div>
                 <div className="flex flex-col items-end text-right">
-                    <span className={cn("text-xs font-bold", isOverdue ? "text-red-600" : "text-amber-600")}>
+                    <span className={cn("text-xs font-bold px-2 py-0.5 rounded shrink-0", isOverdue ? "bg-red-600 text-white" : "text-amber-600 bg-amber-50")}>
                         {listTab === 'Ativa' ? 'Prazo: ' : 'Dev: '}
                         {listTab === 'Ativa'
                             ? (c.data_devolucao ? format(new Date(c.data_devolucao), 'dd/MM/yyyy') : 'N/D')
@@ -292,7 +293,6 @@ const TemporaryCautionArea: React.FC = () => {
             assinatura_militar,
             assinatura_encarregado
         };
-        console.log("DEBUG: Enviando cautela:", body);
         const res = await fetch('/api/cautelas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
