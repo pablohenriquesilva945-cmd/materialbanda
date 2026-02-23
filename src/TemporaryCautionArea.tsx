@@ -266,11 +266,14 @@ const TemporaryCautionArea: React.FC = () => {
     const [selectedBaixaItems, setSelectedBaixaItems] = useState<number[]>([]);
 
     const overdueCount = useMemo(() => {
-        return cautelas.filter(c =>
-            c.status === 'Ativa' &&
-            c.data_devolucao &&
-            isPast(new Date(c.data_devolucao.replace(' ', 'T')))
-        ).length;
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        return cautelas.filter(c => {
+            if (c.status !== 'Ativa' || !c.data_devolucao) return false;
+            const prazo = new Date(c.data_devolucao.replace(' ', 'T'));
+            prazo.setHours(0, 0, 0, 0);
+            return prazo < hoje;
+        }).length;
     }, [cautelas]);
 
     const fetchData = async () => {
