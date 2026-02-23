@@ -444,11 +444,19 @@ app.get("/api/stats", async (req, res) => {
     const { count: cautelasAtivas } = await supabase.from("cautelas").select("*", { count: 'exact', head: true }).eq("status", "Ativa");
     const { count: emManutencao } = await supabase.from("materiais").select("*", { count: 'exact', head: true }).eq("status", "Manutenção");
 
+    const { count: atrasados } = await supabase
+      .from("cautelas")
+      .select("*", { count: 'exact', head: true })
+      .eq("status", "Ativa")
+      .eq("tipo", "Temporária")
+      .lt("data_devolucao", new Date().toISOString());
+
     res.json({
       militares: militares || 0,
       materiais: materiais || 0,
       cautelasAtivas: cautelasAtivas || 0,
-      emManutencao: emManutencao || 0
+      emManutencao: emManutencao || 0,
+      atrasados: atrasados || 0
     });
   } catch (e: any) {
     res.status(500).json({ error: e.message });

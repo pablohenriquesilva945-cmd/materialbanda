@@ -251,6 +251,14 @@ const TemporaryCautionArea: React.FC = () => {
     const [partialBaixaCautela, setPartialBaixaCautela] = useState<Cautela | null>(null);
     const [selectedBaixaItems, setSelectedBaixaItems] = useState<number[]>([]);
 
+    const overdueCount = useMemo(() => {
+        return cautelas.filter(c =>
+            c.status === 'Ativa' &&
+            c.data_devolucao &&
+            isPast(startOfDay(new Date(c.data_devolucao.replace(' ', 'T'))))
+        ).length;
+    }, [cautelas]);
+
     const fetchData = async () => {
         const opts = { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } };
         const [cRes, mRes, matRes] = await Promise.all([
@@ -599,6 +607,21 @@ const TemporaryCautionArea: React.FC = () => {
                                 className="pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs w-full"
                             />
                         </div>
+
+                        {listTab === 'Ativa' && overdueCount > 0 && (
+                            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 flex items-center gap-4 animate-in slide-in-from-top-2 duration-300">
+                                <div className="bg-red-500 p-2 rounded-lg text-white">
+                                    <AlertTriangle className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h4 className="text-red-900 font-bold text-sm">Atenção: Itens Atrasados</h4>
+                                    <p className="text-red-700 text-xs text-balance">
+                                        Existem <strong>{overdueCount}</strong> cautelas temporárias com o prazo de devolução expirado.
+                                        Por favor, entre em contato com os militares responsáveis para regularizar a situação.
+                                    </p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">

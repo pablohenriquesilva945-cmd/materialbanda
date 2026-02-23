@@ -10,7 +10,8 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     militares: 0,
     materiais: 0,
     cautelasAtivas: 0,
-    emManutencao: 0
+    emManutencao: 0,
+    atrasados: 0
   });
 
   useEffect(() => {
@@ -28,6 +29,26 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   return (
     <div className="space-y-8">
+      {stats.atrasados > 0 && (
+        <button
+          onClick={() => onNavigate('temporaria')}
+          className="w-full bg-red-50 border-2 border-red-200 p-4 rounded-xl flex items-center justify-between group hover:bg-red-100 transition-all animate-pulse"
+        >
+          <div className="flex items-center gap-4">
+            <div className="bg-red-500 p-2 rounded-lg text-white">
+              <Wrench className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <h4 className="text-red-900 font-bold">Atenção: Material com Prazo Excedido</h4>
+              <p className="text-red-700 text-sm">Existem {stats.atrasados} cautelas temporárias com a data de devolução vencida.</p>
+            </div>
+          </div>
+          <div className="flex items-center text-red-600 font-bold text-sm">
+            Ver agora <ChevronRight className="w-4 h-4 ml-1" />
+          </div>
+        </button>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {cards.map((card) => (
           <button
@@ -54,7 +75,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8">
         <h3 className="text-lg font-bold text-slate-900 mb-4">Bem-vindo ao Sistema de Cautela</h3>
         <p className="text-slate-600 leading-relaxed">
-          Este sistema foi desenvolvido para o controle interno e restrito de materiais da Banda de Música da Aeronáutica. 
+          Este sistema foi desenvolvido para o controle interno e restrito de materiais da Banda de Música da Aeronáutica.
           Utilize o menu lateral para navegar entre as áreas de cadastro de militares, instrumentos e gestão de cautelas.
         </p>
       </div>
