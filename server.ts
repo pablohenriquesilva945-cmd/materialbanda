@@ -269,6 +269,7 @@ app.get("/api/cautelas", async (req, res) => {
 
 app.post("/api/cautelas", async (req, res) => {
   const { militar_id, material_ids, observacoes, tipo, assinatura_militar, assinatura_encarregado, data_devolucao } = req.body;
+  console.log("DEBUG: Criando cautela com corpo:", req.body);
 
   try {
     // 1. Create Cautela

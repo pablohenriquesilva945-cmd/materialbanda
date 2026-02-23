@@ -283,18 +283,20 @@ const TemporaryCautionArea: React.FC = () => {
     };
 
     const finalizeCautela = async (assinatura_militar: string, assinatura_encarregado: string) => {
+        const body = {
+            militar_id: parseInt(selectedMilitar),
+            material_ids: selectedMateriais,
+            observacoes,
+            tipo: 'Temporária',
+            data_devolucao: dataDevolucao ? new Date(dataDevolucao).toISOString() : null,
+            assinatura_militar,
+            assinatura_encarregado
+        };
+        console.log("DEBUG: Enviando cautela:", body);
         const res = await fetch('/api/cautelas', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                militar_id: parseInt(selectedMilitar),
-                material_ids: selectedMateriais,
-                observacoes,
-                tipo: 'Temporária',
-                data_devolucao: dataDevolucao ? new Date(dataDevolucao).toISOString() : null,
-                assinatura_militar,
-                assinatura_encarregado
-            })
+            body: JSON.stringify(body)
         });
 
         if (res.ok) {
