@@ -144,45 +144,48 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
   // Signature 3: Chefe da Banda de Música (Centered below)
   const signatureY2 = signatureY + 50;
-  doc.setFont('helvetica', 'bold');
-  doc.line(pageWidth / 2 - 35, signatureY2 + 20, pageWidth / 2 + 35, signatureY2 + 20);
-  doc.text('CHEFE DA BANDA DE MÚSICA', pageWidth / 2, signatureY2 + 25, { align: 'center' });
-
-  // Gov.br digital signature block (rendered natively, no background)
-  const govBrY = signatureY2 + 32;
   const centerX = pageWidth / 2;
+
+  // Gov.br digital signature block — rendered ABOVE the signature line
+  const govBrY = signatureY2 + 1; // starts just above the line area
 
   try {
     const govBrLogo = await loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Logo_do_Governo_do_Brasil.svg/120px-Logo_do_Governo_do_Brasil.svg.png');
-    doc.addImage(govBrLogo, 'PNG', centerX - 35, govBrY, 22, 9);
+    doc.addImage(govBrLogo, 'PNG', centerX - 35, govBrY, 20, 8);
   } catch (e) {
     // fallback: draw "gov.br" text
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(7);
     doc.setTextColor(0, 82, 165);
-    doc.text('gov', centerX - 30, govBrY + 6);
+    doc.text('gov', centerX - 28, govBrY + 5);
     doc.setTextColor(0, 150, 57);
-    doc.text('.br', centerX - 22, govBrY + 6);
+    doc.text('.br', centerX - 20, govBrY + 5);
   }
 
-  // Signature text block
+  // Signature text (to the right of the logo)
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6);
+  doc.setFontSize(5.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('Documento assinado digitalmente', centerX - 10, govBrY + 2);
+  doc.text('Documento assinado digitalmente', centerX - 12, govBrY + 2);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(7);
+  doc.setFontSize(6.5);
   doc.setTextColor(0, 0, 0);
-  doc.text('VALDECI INACIO PEREIRA', centerX - 10, govBrY + 6);
+  doc.text('VALDECI INACIO PEREIRA', centerX - 12, govBrY + 6.5);
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(6);
+  doc.setFontSize(5.5);
   doc.setTextColor(100, 100, 100);
-  doc.text('Data: 10/09/2025 18:46:07-0300', centerX - 10, govBrY + 10);
+  doc.text('Data: 10/09/2025 18:46:07-0300', centerX - 12, govBrY + 10.5);
   doc.setTextColor(0, 102, 204);
-  doc.text('Verifique em https://validar.iti.gov.br', centerX - 10, govBrY + 14);
+  doc.text('Verifique em https://validar.iti.gov.br', centerX - 12, govBrY + 14.5);
 
-  // Reset text color
+  // Reset
   doc.setTextColor(0, 0, 0);
+  doc.setFontSize(10);
+
+  // Signature line and label below the block
+  doc.setFont('helvetica', 'bold');
+  doc.line(centerX - 35, signatureY2 + 20, centerX + 35, signatureY2 + 20);
+  doc.text('CHEFE DA BANDA DE MÚSICA', centerX, signatureY2 + 25, { align: 'center' });
 
   return doc;
 };
