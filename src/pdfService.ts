@@ -104,17 +104,16 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   });
 
   // Calculate dynamic Y position based on text height
-  // Approximate height: (number of characters / chars per line) * line height
   const textLines = doc.splitTextToSize(responsibilityText, pageWidth - 40);
-  const textHeight = textLines.length * 7; // 7 is approx height with 1.5 line factor
+  const textHeight = textLines.length * 6; // slightly tighter line height estimation
 
-  let signatureY = finalY + textHeight + 15;
+  let signatureY = finalY + textHeight + 10;
 
   // Check if we need a new page for signatures
-  // A4 height is 297mm. With the compact layout, we need about 50mm.
-  if (signatureY + 50 > 280) {
+  // A4 height is 297mm. With the compact layout, we need about 45mm.
+  if (signatureY + 45 > 280) {
     doc.addPage();
-    signatureY = 25; // Reset Y for new page
+    signatureY = 20; // Reset Y for new page
   }
 
   // Date and Signatures
@@ -125,26 +124,28 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   const militarNomeUpper = cautela.militar_nome.toUpperCase();
 
   // ----- ROW 1: Militar (Left) & Conferente (Right) -----
-  const row1Y = signatureY + 25; // Line position
+  const row1Y = signatureY + 20; // Brought up by 5 units
   doc.setFontSize(9);
 
   // Signature 1: Militar (Left)
   doc.line(20, row1Y, 90, row1Y);
   if (cautela.assinatura_militar) {
-    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 5, 50, 18);
+    // Moved image Y-coordinate up closer to the line
+    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 3, 50, 16);
   }
   doc.setFont('helvetica', 'bold');
-  doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, row1Y + 5, { align: 'center' });
+  doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, row1Y + 4, { align: 'center' });
   doc.setFont('helvetica', 'normal');
-  doc.text(militarNomeUpper, 55, row1Y + 9, { align: 'center' });
+  doc.text(militarNomeUpper, 55, row1Y + 8, { align: 'center' });
 
   // Signature 2: Conferente (Right)
   doc.setFont('helvetica', 'bold');
   doc.line(120, row1Y, 190, row1Y);
   if (cautela.assinatura_encarregado) {
-    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 5, 50, 18);
+    // Moved image Y-coordinate up closer to the line
+    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 3, 50, 16);
   }
-  doc.text('CONFERENTE', 155, row1Y + 5, { align: 'center' });
+  doc.text('CONFERENTE', 155, row1Y + 4, { align: 'center' });
 
   // ----- ROW 2: Chefe da Banda de Música (Center, properly spaced below) -----
   // Placed right below the first two signatures.
