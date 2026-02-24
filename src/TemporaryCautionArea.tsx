@@ -7,6 +7,7 @@ import { downloadTermoCautela, downloadTermoBaixa, previewTermoCautela, previewT
 import PdfPreviewModal from './PdfPreviewModal';
 import QrScanner from './QrScanner';
 import SignatureModal from './SignatureModal';
+import { useDebounce } from './useDebounce';
 
 const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isSelected: boolean, onToggle: (id: number) => void }) => (
     <button

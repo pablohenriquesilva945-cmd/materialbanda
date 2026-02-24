@@ -228,6 +228,7 @@ const CautionArea: React.FC = () => {
   const [previewTitle, setPreviewTitle] = useState('');
   const [currentCautelaForPreview, setCurrentCautelaForPreview] = useState<Cautela | null>(null);
   const [listTab, setListTab] = useState<'Ativa' | 'Finalizada'>('Ativa');
+  const [isScanning, setIsScanning] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [pendingBaixa, setPendingBaixa] = useState<{ cautela: Cautela, materialIds: number[] } | null>(null);
   const [partialBaixaCautela, setPartialBaixaCautela] = useState<Cautela | null>(null);
