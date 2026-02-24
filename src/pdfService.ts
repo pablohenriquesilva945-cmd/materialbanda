@@ -56,7 +56,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   }
 
   // 2. DESCRIÇÃO DO MATERIAL
-  const section2Y = 95 + rectHeight + 15;
+  const section2Y = 95 + rectHeight + 8; // reduced gap
   doc.setFont('helvetica', 'bold');
   doc.text('2. DESCRIÇÃO DO MATERIAL', 20, section2Y);
 
@@ -69,7 +69,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   ]);
 
   autoTable(doc, {
-    startY: section2Y + 10,
+    startY: section2Y + 5, // reduced gap
     head: [['Item', 'Descrição', 'BMP', 'Marca', type === 'Cautela' ? 'Estado (Retirada)' : 'Estado (Devolução)']],
     body: tableData,
     theme: 'grid',
@@ -77,7 +77,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
     styles: { fontSize: 9 }
   });
 
-  const finalY = (doc as any).lastAutoTable.finalY + 15;
+  const finalY = (doc as any).lastAutoTable.finalY + 8; // reduced gap
 
   // 3. TERMO DE RESPONSABILIDADE / DECLARAÇÃO
   doc.setFont('helvetica', 'bold');
@@ -96,8 +96,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'normal');
 
   // jsPDF text with maxWidth and align justify can be tricky with the last line.
-  // We'll use a slightly more robust way to render the paragraph.
-  doc.text(responsibilityText, 20, finalY + 7, {
+  doc.text(responsibilityText, 20, finalY + 5, {
     align: 'justify',
     maxWidth: pageWidth - 40,
     lineHeightFactor: 1.5
@@ -107,13 +106,18 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   const textLines = doc.splitTextToSize(responsibilityText, pageWidth - 40);
   const textHeight = textLines.length * 6; // slightly tighter line height estimation
 
-  let signatureY = finalY + textHeight + 10;
+  let signatureY = finalY + textHeight + 6; // reduced gap
 
   // Check if we need a new page for signatures
-  // A4 height is 297mm. With the compact layout, we need about 45mm.
-  if (signatureY + 45 > 280) {
+  // A4 height is 297mm.
+  // The threshold is tightened so it only breaks when truly near the bottom edge.
+  if (signatureY + 40 > 285) {
     doc.addPage();
-    signatureY = 20; // Reset Y for new page
+    signatureY = 15; // Reset Y for new page
+  } else {
+    // If it's very high up (e.g. only 1 item), we can push it down slightly to look better,
+    // but the user wants it to NOT have huge gaps.
+    // We will just let it be right after the text.
   }
 
   // Date and Signatures
@@ -124,32 +128,30 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   const militarNomeUpper = cautela.militar_nome.toUpperCase();
 
   // ----- ROW 1: Militar (Left) & Conferente (Right) -----
-  const row1Y = signatureY + 20; // Brought up by 5 units
+  const row1Y = signatureY + 18; // Line position (tightened)
   doc.setFontSize(9);
 
   // Signature 1: Militar (Left)
   doc.line(20, row1Y, 90, row1Y);
   if (cautela.assinatura_militar) {
-    // Moved image Y-coordinate up closer to the line
-    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 3, 50, 16);
+    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 2, 50, 15);
   }
   doc.setFont('helvetica', 'bold');
-  doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, row1Y + 4, { align: 'center' });
+  doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, row1Y + 3, { align: 'center' });
   doc.setFont('helvetica', 'normal');
-  doc.text(militarNomeUpper, 55, row1Y + 8, { align: 'center' });
+  doc.text(militarNomeUpper, 55, row1Y + 7, { align: 'center' });
 
   // Signature 2: Conferente (Right)
   doc.setFont('helvetica', 'bold');
   doc.line(120, row1Y, 190, row1Y);
   if (cautela.assinatura_encarregado) {
-    // Moved image Y-coordinate up closer to the line
-    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 3, 50, 16);
+    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 2, 50, 15);
   }
-  doc.text('CONFERENTE', 155, row1Y + 4, { align: 'center' });
+  doc.text('CONFERENTE', 155, row1Y + 3, { align: 'center' });
 
   // ----- ROW 2: Chefe da Banda de Música (Center, properly spaced below) -----
   // Placed right below the first two signatures.
-  const row2Y = row1Y + 28; // 28 units below the first row of signatures
+  const row2Y = row1Y + 24; // 24 units below the first row of signatures (tightened)
   const centerX = pageWidth / 2;
 
   let commanderSignature = null;
@@ -165,7 +167,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
   if (commanderSignature) {
     try {
-      doc.addImage(commanderSignature, 'PNG', centerX - 25, row2Y - 18, 50, 18);
+      doc.addImage(commanderSignature, 'PNG', centerX - 25, row2Y - 14, 50, 15);
     } catch (e) {
       console.warn('Could not add commander signature image to PDF', e);
     }
@@ -175,7 +177,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
   doc.line(centerX - 35, row2Y, centerX + 35, row2Y);
-  doc.text('CHEFE DA BANDA DE MÚSICA', centerX, row2Y + 5, { align: 'center' });
+  doc.text('CHEFE DA BANDA DE MÚSICA', centerX, row2Y + 4, { align: 'center' });
 
   return doc;
 };
