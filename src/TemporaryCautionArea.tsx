@@ -399,27 +399,31 @@ const TemporaryCautionArea: React.FC = () => {
         );
     }, []);
 
+    const debouncedMilitarSearch = useDebounce(militarSearch, 300);
+    const debouncedMaterialSearch = useDebounce(materialSearch, 300);
+    const debouncedRecordSearch = useDebounce(recordSearch, 300);
+
     const filteredMilitares = useMemo(() => {
-        const search = militarSearch.toLowerCase();
+        const search = debouncedMilitarSearch.toLowerCase();
         return militares.filter(m =>
             m.nome.toLowerCase().includes(search) ||
             m.saram.includes(search) ||
             m.posto.toLowerCase().includes(search)
         );
-    }, [militares, militarSearch]);
+    }, [militares, debouncedMilitarSearch]);
 
     const filteredMateriaisDisponiveis = useMemo(() => {
-        const search = materialSearch.toLowerCase();
+        const search = debouncedMaterialSearch.toLowerCase();
         return materiais.filter(m =>
             m.status === 'Disponível' && (
                 m.nome.toLowerCase().includes(search) ||
                 m.bmp.includes(search)
             )
         ).slice(0, 50);
-    }, [materiais, materialSearch]);
+    }, [materiais, debouncedMaterialSearch]);
 
     const filteredCautelas = useMemo(() => {
-        const search = recordSearch.toLowerCase();
+        const search = debouncedRecordSearch.toLowerCase();
         return cautelas.filter(c =>
             c.tipo === 'Temporária' &&
             c.status === listTab && (
@@ -427,7 +431,7 @@ const TemporaryCautionArea: React.FC = () => {
                 c.itens.some(item => item.nome.toLowerCase().includes(search) || item.bmp.includes(search))
             )
         );
-    }, [cautelas, listTab, recordSearch]);
+    }, [cautelas, listTab, debouncedRecordSearch]);
 
     return (
         <div className="space-y-8">

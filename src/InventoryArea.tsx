@@ -3,6 +3,7 @@ import { Save, Search, PlusCircle, Trash2, Edit, Music, Package, Box, QrCode } f
 import { Material, TipoMaterial, EstadoMaterial } from './types';
 import { cn } from './utils';
 import QrCodeModal from './QrCodeModal';
+import { useDebounce } from './useDebounce';
 
 const InventoryArea: React.FC = () => {
   const [materiais, setMateriais] = useState<Material[]>([]);
@@ -16,6 +17,7 @@ const InventoryArea: React.FC = () => {
     lugar: ''
   });
   const [filter, setFilter] = useState('');
+  const debouncedFilter = useDebounce(filter, 300);
   const [selectedMaterialForQr, setSelectedMaterialForQr] = useState<Material | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -102,10 +104,10 @@ const InventoryArea: React.FC = () => {
 
   const filteredMateriais = materiais.filter(m =>
     m.tipo === activeSubTab && (
-      m.nome.toLowerCase().includes(filter.toLowerCase()) ||
-      m.bmp.includes(filter) ||
-      (m.marca && m.marca.toLowerCase().includes(filter.toLowerCase())) ||
-      (m.cautelado_por && m.cautelado_por.toLowerCase().includes(filter.toLowerCase()))
+      m.nome.toLowerCase().includes(debouncedFilter.toLowerCase()) ||
+      m.bmp.includes(debouncedFilter) ||
+      (m.marca && m.marca.toLowerCase().includes(debouncedFilter.toLowerCase())) ||
+      (m.cautelado_por && m.cautelado_por.toLowerCase().includes(debouncedFilter.toLowerCase()))
     )
   );
 

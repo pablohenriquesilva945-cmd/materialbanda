@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Search, UserPlus, Trash2, Edit, X, User, Phone, Mail, MapPin, Hash, BadgeCheck } from 'lucide-react';
 import { Militar, POSTOS_GRADUACOES } from './types';
+import { useDebounce } from './useDebounce';
 
 const MilitaryArea: React.FC = () => {
   const [militares, setMilitares] = useState<Militar[]>([]);
@@ -14,6 +15,7 @@ const MilitaryArea: React.FC = () => {
     endereco: ''
   });
   const [filter, setFilter] = useState('');
+  const debouncedFilter = useDebounce(filter, 300);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -97,9 +99,9 @@ const MilitaryArea: React.FC = () => {
   };
 
   const filteredMilitares = militares.filter(m =>
-    m.nome.toLowerCase().includes(filter.toLowerCase()) ||
-    m.saram.includes(filter) ||
-    m.posto.toLowerCase().includes(filter.toLowerCase())
+    m.nome.toLowerCase().includes(debouncedFilter.toLowerCase()) ||
+    m.saram.includes(debouncedFilter) ||
+    m.posto.toLowerCase().includes(debouncedFilter.toLowerCase())
   );
 
   return (

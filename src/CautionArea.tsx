@@ -7,6 +7,7 @@ import { downloadTermoCautela, downloadTermoBaixa, previewTermoCautela, previewT
 import PdfPreviewModal from './PdfPreviewModal';
 import QrScanner from './QrScanner';
 import SignatureModal from './SignatureModal';
+import { useDebounce } from './useDebounce';
 
 const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isSelected: boolean, onToggle: (id: number) => void }) => (
   <button
@@ -227,31 +228,15 @@ const CautionArea: React.FC = () => {
   const [previewTitle, setPreviewTitle] = useState('');
   const [currentCautelaForPreview, setCurrentCautelaForPreview] = useState<Cautela | null>(null);
   const [listTab, setListTab] = useState<'Ativa' | 'Finalizada'>('Ativa');
-  const [isScanning, setIsScanning] = useState(false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [pendingBaixa, setPendingBaixa] = useState<{ cautela: Cautela, materialIds: number[] } | null>(null);
   const [partialBaixaCautela, setPartialBaixaCautela] = useState<Cautela | null>(null);
   const [selectedBaixaItems, setSelectedBaixaItems] = useState<number[]>([]);
 
   // Debounced search states
-  const [debouncedMilitarSearch, setDebouncedMilitarSearch] = useState('');
-  const [debouncedMaterialSearch, setDebouncedMaterialSearch] = useState('');
-  const [debouncedRecordSearch, setDebouncedRecordSearch] = useState('');
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedMilitarSearch(militarSearch), 300);
-    return () => clearTimeout(timer);
-  }, [militarSearch]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedMaterialSearch(materialSearch), 300);
-    return () => clearTimeout(timer);
-  }, [materialSearch]);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedRecordSearch(recordSearch), 300);
-    return () => clearTimeout(timer);
-  }, [recordSearch]);
+  const debouncedMilitarSearch = useDebounce(militarSearch, 300);
+  const debouncedMaterialSearch = useDebounce(materialSearch, 300);
+  const debouncedRecordSearch = useDebounce(recordSearch, 300);
 
   const fetchData = async () => {
     const opts = { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } };
