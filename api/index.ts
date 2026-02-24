@@ -519,15 +519,22 @@ app.get("/api/stats", async (req, res) => {
     const { count: cautelasAtivas } = await supabase.from("cautelas").select("*", { count: 'exact', head: true }).eq("status", "Ativa");
     const { count: emManutencao } = await supabase.from("materiais").select("*", { count: 'exact', head: true }).eq("status", "Manutenção");
 
-    // Only count as overdue if the deadline was BEFORE today (not same day)
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0);
+    // Overdue = deadline strictly before today
+    // To handle Vercel timezone (UTC), we must calculate the start of today in Brazil (UTC-3).
+    const now = new Date();
+    // Shift current UTC time by -3 hours to get Brazil local time
+    const brazilTime = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+    // Zero out the hours in Brazil time (which is conceptually UTC in this shifted object)
+    brazilTime.setUTCHours(0, 0, 0, 0);
+    // Now shift it back to True UTC to get the exact start of the day in UTC
+    const startOfTodayInUTC = new Date(brazilTime.getTime() + 3 * 60 * 60 * 1000);
+
     const { count: atrasados } = await supabase
       .from("cautelas")
       .select("*", { count: 'exact', head: true })
       .eq("status", "Ativa")
       .eq("tipo", "Temporária")
-      .lt("data_devolucao", startOfToday.toISOString());
+      .lt("data_devolucao", startOfTodayInUTC.toISOString());
 
     res.json({
       militares: militares || 0,
