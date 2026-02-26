@@ -230,7 +230,7 @@ const InventoryArea: React.FC = () => {
                 >
                   <option value="">Selecione...</option>
                   <option value="Duradouro">Duradouro</option>
-                  <option value="Expediente">Expediente</option>
+                  <option value="Consumo">Consumo</option>
                 </select>
               </div>
             )}
