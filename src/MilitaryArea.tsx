@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Search, UserPlus, Trash2, Edit, X, User, Phone, Mail, MapPin, Hash, BadgeCheck } from 'lucide-react';
-import { Militar, POSTOS_GRADUACOES } from './types';
+import { Militar, POSTOS_GRADUACOES, HIERARQUIA_PESOS } from './types';
 import { useDebounce } from './useDebounce';
 
 const MilitaryArea: React.FC = () => {
@@ -102,7 +102,14 @@ const MilitaryArea: React.FC = () => {
     m.nome.toLowerCase().includes(debouncedFilter.toLowerCase()) ||
     m.saram.includes(debouncedFilter) ||
     m.posto.toLowerCase().includes(debouncedFilter.toLowerCase())
-  );
+  ).sort((a, b) => {
+    const pesoA = HIERARQUIA_PESOS[a.posto] || 99;
+    const pesoB = HIERARQUIA_PESOS[b.posto] || 99;
+    if (pesoA !== pesoB) {
+      return pesoA - pesoB;
+    }
+    return a.nome.localeCompare(b.nome);
+  });
 
   return (
     <div className="space-y-8">

@@ -20,6 +20,32 @@ export const POSTOS_GRADUACOES = [
   "Major"
 ];
 
+export const HIERARQUIA_PESOS: Record<string, number> = {
+  "Major": 1,
+  "Capitão": 2,
+  "Cap": 2,
+  "Primeiro-Tenente": 3,
+  "1T": 3,
+  "Segundo-Tenente": 4,
+  "2T": 4,
+  "Aspirante-a-Oficial": 5,
+  "Asp": 5,
+  "Suboficial": 6,
+  "SO": 6,
+  "Primeiro-Sargento": 7,
+  "1S": 7,
+  "Segundo-Sargento": 8,
+  "2S": 8,
+  "Terceiro-Sargento": 9,
+  "3S": 9,
+  "Cabo": 10,
+  "CB": 10,
+  "Soldado de 1ª Classe (S1)": 11,
+  "S1": 11,
+  "Soldado de 2ª Classe (S2)": 12,
+  "S2": 12
+};
+
 export type EstadoMaterial = 'Bom' | 'Manutenção' | 'Descarte';
 export type TipoMaterial = 'Instrumento' | 'Acessório' | 'Outros';
 export type StatusMaterial = 'Disponível' | 'Cautelado' | 'Manutenção';
