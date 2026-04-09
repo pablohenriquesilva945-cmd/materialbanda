@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const POSTOS_GRADUACOES = [
+  "Aluno (Al)",
   "Soldado de 2ª Classe (S2)",
   "Soldado de 1ª Classe (S1)",
   "Cabo",
@@ -43,7 +44,9 @@ export const HIERARQUIA_PESOS: Record<string, number> = {
   "Soldado de 1ª Classe (S1)": 11,
   "S1": 11,
   "Soldado de 2ª Classe (S2)": 12,
-  "S2": 12
+  "S2": 12,
+  "Aluno (Al)": 13,
+
 };
 
 export type EstadoMaterial = 'Bom' | 'Manutenção' | 'Descarte';
