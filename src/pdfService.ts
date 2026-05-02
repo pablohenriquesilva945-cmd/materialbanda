@@ -20,7 +20,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
   // Header with Logo
   try {
-    const img = await loadImage('https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Coat_of_arms_of_Brazil.svg/150px-Coat_of_arms_of_Brazil.svg.png');
+    const img = await loadImage('/brasao.png');
     doc.addImage(img, 'PNG', pageWidth / 2 - 12, 10, 24, 24);
   } catch (e) {
     console.warn('Could not load logo', e);
