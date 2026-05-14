@@ -416,7 +416,7 @@ const TemporaryCautionArea: React.FC = () => {
     const filteredMateriaisDisponiveis = useMemo(() => {
         const search = debouncedMaterialSearch.toLowerCase();
         return materiais.filter(m =>
-            m.status === 'Disponível' && (
+            (m.status === 'Disponível' && !m.cautelado_por) && (
                 m.nome.toLowerCase().includes(search) ||
                 m.bmp.includes(search)
             )
@@ -439,7 +439,7 @@ const TemporaryCautionArea: React.FC = () => {
             {isScanning && <QrScanner onScanSuccess={(text) => {
                 try {
                     const { id } = JSON.parse(text);
-                    if (materiais.find(m => m.id === id && m.status === 'Disponível') && !selectedMateriais.includes(id)) {
+                    if (materiais.find(m => m.id === id && m.status === 'Disponível' && !m.cautelado_por) && !selectedMateriais.includes(id)) {
                         toggleMaterial(id);
                     }
                 } catch { }

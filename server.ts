@@ -262,7 +262,12 @@ app.put("/api/materiais/:id", async (req, res) => {
   const { id } = req.params;
   const { nome, bmp, marca, estado, tipo, subtipo, lugar } = req.body;
   try {
-    const status = estado === 'Manutenção' ? 'Manutenção' : 'Disponível';
+    const { data: currentMat } = await supabase.from('materiais').select('status').eq('id', id).single();
+    let status = currentMat?.status || 'Disponível';
+    if (status !== 'Cautelado') {
+      status = estado === 'Manutenção' ? 'Manutenção' : 'Disponível';
+    }
+    
     const { error } = await supabase
       .from("materiais")
       .update({ nome, bmp, marca, estado, tipo, subtipo, lugar, status })

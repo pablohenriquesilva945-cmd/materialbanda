@@ -381,7 +381,7 @@ const CautionArea: React.FC = () => {
   const filteredMateriaisDisponiveis = useMemo(() => {
     const search = debouncedMaterialSearch.toLowerCase();
     return materiais.filter(m =>
-      m.status === 'Disponível' && (
+      (m.status === 'Disponível' && !m.cautelado_por) && (
         m.nome.toLowerCase().includes(search) ||
         m.bmp.includes(search) ||
         (m.marca && m.marca.toLowerCase().includes(search))
@@ -404,7 +404,7 @@ const CautionArea: React.FC = () => {
   const handleScanSuccess = (decodedText: string) => {
     try {
       const { id } = JSON.parse(decodedText);
-      const material = materiais.find(m => m.id === id && m.status === 'Disponível');
+      const material = materiais.find(m => m.id === id && m.status === 'Disponível' && !m.cautelado_por);
       if (material && !selectedMateriais.includes(id)) {
         toggleMaterial(id);
       }
