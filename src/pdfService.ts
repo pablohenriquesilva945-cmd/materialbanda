@@ -155,15 +155,32 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   const centerX = pageWidth / 2;
 
   let commanderSignature = null;
+  let commanderName = "CAP VALDECI";
+  let conferenteName = "1S ARTHUR";
+
   try {
-    const res = await fetch('/api/config/commander-signature');
-    if (res.ok) {
-      const data = await res.json();
+    const [sigRes, namesRes] = await Promise.all([
+      fetch('/api/config/commander-signature'),
+      fetch('/api/config/names')
+    ]);
+
+    if (sigRes.ok) {
+      const data = await sigRes.json();
       commanderSignature = data.signature;
     }
+
+    if (namesRes.ok) {
+      const namesData = await namesRes.json();
+      if (namesData.commander_name) commanderName = namesData.commander_name;
+      if (namesData.conferente_name) conferenteName = namesData.conferente_name;
+    }
   } catch (e) {
-    console.warn('Could not fetch commander signature', e);
+    console.warn('Could not fetch commander signature or names', e);
   }
+
+  // Render conferente name
+  doc.setFont('helvetica', 'normal');
+  doc.text(conferenteName.toUpperCase(), 155, row1Y + 7, { align: 'center' });
 
   if (commanderSignature) {
     try {
@@ -178,6 +195,8 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'bold');
   doc.line(centerX - 35, row2Y, centerX + 35, row2Y);
   doc.text('CHEFE DA BANDA DE MÚSICA', centerX, row2Y + 4, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.text(commanderName.toUpperCase(), centerX, row2Y + 8, { align: 'center' });
 
   return doc;
 };

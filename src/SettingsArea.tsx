@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
-import { Save, Trash2, CheckCircle, PenTool, LayoutDashboard } from 'lucide-react';
+import { Save, Trash2, CheckCircle, PenTool, UserCheck, Users } from 'lucide-react';
 
 const SettingsArea: React.FC = () => {
     const [signature, setSignature] = useState<string | null>(null);
@@ -8,8 +8,14 @@ const SettingsArea: React.FC = () => {
     const [message, setMessage] = useState({ text: '', type: '' });
     const sigRef = useRef<SignatureCanvas>(null);
 
+    // States for text names
+    const [commanderName, setCommanderName] = useState('CAP VALDECI');
+    const [conferenteName, setConferenteName] = useState('1S ARTHUR');
+    const [isSavingNames, setIsSavingNames] = useState(false);
+
     useEffect(() => {
         fetchSignature();
+        fetchNames();
     }, []);
 
     const fetchSignature = async () => {
@@ -24,13 +30,24 @@ const SettingsArea: React.FC = () => {
         }
     };
 
+    const fetchNames = async () => {
+        try {
+            const res = await fetch('/api/config/names');
+            if (res.ok) {
+                const data = await res.json();
+                if (data.commander_name) setCommanderName(data.commander_name);
+                if (data.conferente_name) setConferenteName(data.conferente_name);
+            }
+        } catch (e) {
+            console.error("Erro ao buscar nomes:", e);
+        }
+    };
+
     const handleClear = () => {
         sigRef.current?.clear();
     };
 
     const handleRemoveExisting = async () => {
-        // Optionally remove from DB immediately, or just let them overwrite.
-        // We'll let them overwrite by clearing local state.
         setSignature(null);
     };
 
@@ -73,22 +90,103 @@ const SettingsArea: React.FC = () => {
         }
     };
 
+    const handleSaveNames = async () => {
+        setIsSavingNames(true);
+        try {
+            const res = await fetch('/api/config/names', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    commander_name: commanderName,
+                    conferente_name: conferenteName
+                }),
+            });
+
+            if (res.ok) {
+                setMessage({ text: 'Nomes de conferência e chefia atualizados com sucesso!', type: 'success' });
+            } else {
+                setMessage({ text: 'Erro ao salvar os nomes das assinaturas.', type: 'error' });
+            }
+        } catch (e) {
+            console.error("Erro ao salvar nomes:", e);
+            setMessage({ text: 'Erro ao salvar os nomes das assinaturas.', type: 'error' });
+        } finally {
+            setIsSavingNames(false);
+            setTimeout(() => setMessage({ text: '', type: '' }), 4000);
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto space-y-6">
+            {message.text && (
+                <div className={`p-4 rounded-xl text-sm font-bold flex flex-col gap-1 shadow-sm transition-all duration-300 border ${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                    {message.text}
+                </div>
+            )}
+
+            {/* Configuração de Nomes das Assinaturas */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <Users className="text-primary w-6 h-6" />
+                    Identificação das Assinaturas
+                </h2>
+                <p className="text-slate-600 mb-6 text-sm">
+                    Atualize os nomes dos responsáveis que aparecerão impressos nos Termos de Cautela e de Devolução (abaixo das linhas de assinatura).
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 block">
+                            Nome/Posto do Conferente
+                        </label>
+                        <input
+                            type="text"
+                            value={conferenteName}
+                            onChange={(e) => setConferenteName(e.target.value)}
+                            placeholder="Ex: 1S ARTHUR"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm uppercase"
+                        />
+                        <span className="text-xs text-slate-400">Nome que constará sob a assinatura da direita.</span>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 block">
+                            Nome/Posto do Chefe da Banda
+                        </label>
+                        <input
+                            type="text"
+                            value={commanderName}
+                            onChange={(e) => setCommanderName(e.target.value)}
+                            placeholder="Ex: CAP VALDECI"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm uppercase"
+                        />
+                        <span className="text-xs text-slate-400">Nome que constará sob a assinatura central.</span>
+                    </div>
+                </div>
+
+                <div className="flex justify-end pt-6 border-t border-slate-100 mt-6">
+                    <button
+                        onClick={handleSaveNames}
+                        disabled={isSavingNames}
+                        className="bg-primary hover:opacity-90 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+                    >
+                        <Save className="w-5 h-5" />
+                        {isSavingNames ? 'Salvando...' : 'Salvar Identificações'}
+                    </button>
+                </div>
+            </div>
+
+            {/* Configuração de Assinatura do Chefe da Banda */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
                     <PenTool className="text-primary w-6 h-6" />
                     Assinatura do Chefe da Banda
                 </h2>
                 <p className="text-slate-600 mb-6 text-sm">
-                    Cadastre a assinatura do Chefe da Banda de Música. Esta assinatura será inserida automaticamente ao gerar os Termos de Responsabilidade e Cautela e Termos de Devolução e Baixa do sistema.
+                    Cadastre a assinatura digitalizada do Chefe da Banda de Música. Esta assinatura será inserida automaticamente ao gerar os Termos de Cautela e de Devolução do sistema.
                 </p>
-
-                {message.text && (
-                    <div className={`p-4 mb-4 rounded-xl text-sm font-bold flex flex-col gap-1 \${message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
-                        {message.text}
-                    </div>
-                )}
 
                 <div className="space-y-4">
                     <div className="flex items-center justify-between">

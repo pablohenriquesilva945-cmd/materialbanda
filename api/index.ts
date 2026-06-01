@@ -148,6 +148,80 @@ app.post("/api/config/commander-signature", async (req, res) => {
   }
 });
 
+app.get("/api/config/names", async (req, res) => {
+  try {
+    const { data: cmdNameData } = await supabase
+      .from("configuracao")
+      .select("value")
+      .eq("key", "commander_name")
+      .maybeSingle();
+
+    const { data: confNameData } = await supabase
+      .from("configuracao")
+      .select("value")
+      .eq("key", "conferente_name")
+      .maybeSingle();
+
+    res.json({
+      commander_name: cmdNameData ? cmdNameData.value : "CAP VALDECI",
+      conferente_name: confNameData ? confNameData.value : "1S ARTHUR"
+    });
+  } catch (e: any) {
+    console.error("Erro ao buscar nomes de configuração:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/config/names", async (req, res) => {
+  const { commander_name, conferente_name } = req.body;
+  try {
+    // Save commander_name
+    if (commander_name !== undefined) {
+      const { data: existingCmd } = await supabase
+        .from("configuracao")
+        .select("key")
+        .eq("key", "commander_name")
+        .maybeSingle();
+
+      if (existingCmd) {
+        await supabase
+          .from("configuracao")
+          .update({ value: commander_name })
+          .eq("key", "commander_name");
+      } else {
+        await supabase
+          .from("configuracao")
+          .insert([{ key: "commander_name", value: commander_name }]);
+      }
+    }
+
+    // Save conferente_name
+    if (conferente_name !== undefined) {
+      const { data: existingConf } = await supabase
+        .from("configuracao")
+        .select("key")
+        .eq("key", "conferente_name")
+        .maybeSingle();
+
+      if (existingConf) {
+        await supabase
+          .from("configuracao")
+          .update({ value: conferente_name })
+          .eq("key", "conferente_name");
+      } else {
+        await supabase
+          .from("configuracao")
+          .insert([{ key: "conferente_name", value: conferente_name }]);
+      }
+    }
+
+    res.json({ success: true });
+  } catch (e: any) {
+    console.error("Erro ao salvar nomes de configuração:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Militares
 app.get("/api/militares", async (req, res) => {
   const { data, error } = await supabase
