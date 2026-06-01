@@ -50,6 +50,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.text(`SARAM: ${cautela.militar_saram}`, 120, 102);
   doc.text(`Posto/Graduação: ${cautela.militar_posto}`, 25, 112);
 
+
   if (type === 'Baixa') {
     doc.text(`Data da Cautela: ${format(new Date(cautela.data_cautela), 'dd/MM/yyyy')}`, 25, 122);
   }
@@ -138,8 +139,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'bold');
   doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, row1Y + 3, { align: 'center' });
   doc.setFont('helvetica', 'normal');
-  const nomeCompletoAssinatura = `${cautela.militar_posto.toUpperCase()} ${militarNomeUpper}`;
-  doc.text(nomeCompletoAssinatura, 55, row1Y + 7, { align: 'center' });
+  doc.text(militarNomeUpper, 55, row1Y + 7, { align: 'center' });
 
   // Signature 2: Conferente (Right)
   doc.setFont('helvetica', 'bold');
@@ -148,8 +148,6 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
     doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 2, 50, 15);
   }
   doc.text('CONFERENTE', 155, row1Y + 3, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.text('1S ARTHUR', 155, row1Y + 7, { align: 'center' });
 
   // ----- ROW 2: Chefe da Banda de Música (Center, properly spaced below) -----
   // Placed right below the first two signatures.
@@ -180,8 +178,6 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'bold');
   doc.line(centerX - 35, row2Y, centerX + 35, row2Y);
   doc.text('CHEFE DA BANDA DE MÚSICA', centerX, row2Y + 4, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.text('CAP VALDECI', centerX, row2Y + 8, { align: 'center' });
 
   return doc;
 };
