@@ -98,5 +98,6 @@ export interface Cautela {
   data_devolucao?: string;
   assinatura_militar?: string;
   assinatura_encarregado?: string;
+  conferente?: string;
   itens: CautelaItem[];
 }

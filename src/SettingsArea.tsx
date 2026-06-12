@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import SignatureCanvas from 'react-signature-canvas';
 import { Save, Trash2, CheckCircle, PenTool, UserCheck, Users } from 'lucide-react';
+import { useAuth } from './AuthContext';
 
 const SettingsArea: React.FC = () => {
+    const { user } = useAuth();
     const [signature, setSignature] = useState<string | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState({ text: '', type: '' });
@@ -12,6 +14,12 @@ const SettingsArea: React.FC = () => {
     const [commanderName, setCommanderName] = useState('CAP VALDECI');
     const [conferenteName, setConferenteName] = useState('1S ARTHUR');
     const [isSavingNames, setIsSavingNames] = useState(false);
+
+    // States for user password change
+    const [oldUserPassword, setOldUserPassword] = useState('');
+    const [newUserPassword, setNewUserPassword] = useState('');
+    const [confirmUserPassword, setConfirmUserPassword] = useState('');
+    const [isSavingUserPassword, setIsSavingUserPassword] = useState(false);
 
     useEffect(() => {
         fetchSignature();
@@ -99,13 +107,12 @@ const SettingsArea: React.FC = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    commander_name: commanderName,
-                    conferente_name: conferenteName
+                    commander_name: commanderName
                 }),
             });
 
             if (res.ok) {
-                setMessage({ text: 'Nomes de conferência e chefia atualizados com sucesso!', type: 'success' });
+                setMessage({ text: 'Nomes de chefia atualizados com sucesso!', type: 'success' });
             } else {
                 setMessage({ text: 'Erro ao salvar os nomes das assinaturas.', type: 'error' });
             }
@@ -114,6 +121,49 @@ const SettingsArea: React.FC = () => {
             setMessage({ text: 'Erro ao salvar os nomes das assinaturas.', type: 'error' });
         } finally {
             setIsSavingNames(false);
+            setTimeout(() => setMessage({ text: '', type: '' }), 4000);
+        }
+    };
+
+    const handleUpdateUserPassword = async () => {
+        if (!user) return;
+        if (!oldUserPassword || !newUserPassword || !confirmUserPassword) {
+            setMessage({ text: 'Por favor, preencha todos os campos de senha.', type: 'error' });
+            return;
+        }
+        if (newUserPassword !== confirmUserPassword) {
+            setMessage({ text: 'A nova senha e a confirmação não coincidem.', type: 'error' });
+            return;
+        }
+
+        setIsSavingUserPassword(true);
+        try {
+            const res = await fetch('/api/update-user-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    username: user.username,
+                    oldPassword: oldUserPassword,
+                    newPassword: newUserPassword
+                }),
+            });
+
+            if (res.ok) {
+                setMessage({ text: 'Sua senha de conferente foi atualizada com sucesso!', type: 'success' });
+                setOldUserPassword('');
+                setNewUserPassword('');
+                setConfirmUserPassword('');
+            } else {
+                const errData = await res.json();
+                setMessage({ text: `Erro: ${errData.error || 'Não foi possível alterar a senha.'}`, type: 'error' });
+            }
+        } catch (e) {
+            console.error("Erro ao alterar senha:", e);
+            setMessage({ text: 'Erro ao alterar a senha.', type: 'error' });
+        } finally {
+            setIsSavingUserPassword(false);
             setTimeout(() => setMessage({ text: '', type: '' }), 4000);
         }
     };
@@ -139,16 +189,15 @@ const SettingsArea: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-bold text-slate-700 block">
-                            Nome/Posto do Conferente
+                            Nome/Posto do Conferente (Sessão Ativa)
                         </label>
                         <input
                             type="text"
-                            value={conferenteName}
-                            onChange={(e) => setConferenteName(e.target.value)}
-                            placeholder="Ex: 1S ARTHUR"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm uppercase"
+                            value={user?.nome_conferente || conferenteName}
+                            disabled
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 font-bold text-sm uppercase cursor-not-allowed"
                         />
-                        <span className="text-xs text-slate-400">Nome que constará sob a assinatura da direita.</span>
+                        <span className="text-xs text-slate-400">O conferente é definido pelo login ativo.</span>
                     </div>
 
                     <div className="space-y-2">
@@ -241,6 +290,69 @@ const SettingsArea: React.FC = () => {
                             {signature ? 'Assinatura Adicionada' : (isSaving ? 'Salvando...' : 'Salvar Assinatura')}
                         </button>
                     </div>
+                </div>
+            </div>
+
+            {/* Alterar Senha do Conferente */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
+                    <UserCheck className="text-primary w-6 h-6" />
+                    Segurança / Alterar Senha
+                </h2>
+                <p className="text-slate-600 mb-6 text-sm">
+                    Altere a senha de acesso da conta de conferente ativa (<strong className="font-bold text-slate-800">{user?.nome_conferente}</strong>).
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 block">
+                            Senha Atual
+                        </label>
+                        <input
+                            type="password"
+                            value={oldUserPassword}
+                            onChange={(e) => setOldUserPassword(e.target.value)}
+                            placeholder="Sua senha atual"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 block">
+                            Nova Senha
+                        </label>
+                        <input
+                            type="password"
+                            value={newUserPassword}
+                            onChange={(e) => setNewUserPassword(e.target.value)}
+                            placeholder="Sua nova senha"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 block">
+                            Confirmar Nova Senha
+                        </label>
+                        <input
+                            type="password"
+                            value={confirmUserPassword}
+                            onChange={(e) => setConfirmUserPassword(e.target.value)}
+                            placeholder="Confirme a nova senha"
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                        />
+                    </div>
+                </div>
+
+                <div className="flex justify-end pt-6 border-t border-slate-100 mt-6">
+                    <button
+                        onClick={handleUpdateUserPassword}
+                        disabled={isSavingUserPassword}
+                        className="bg-primary hover:opacity-90 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+                    >
+                        <Save className="w-5 h-5" />
+                        {isSavingUserPassword ? 'Salvando...' : 'Atualizar Senha'}
+                    </button>
                 </div>
             </div>
         </div>

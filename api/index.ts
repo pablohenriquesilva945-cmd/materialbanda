@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import bcrypt from "bcrypt";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,13 +14,13 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseKey) {
   console.error("ERRO: Credenciais do Supabase ausentes no ambiente!");
 }
 
-const supabase = createClient(supabaseUrl || "", supabaseAnonKey || "");
+const supabase = createClient(supabaseUrl || "", supabaseKey || "");
 
 const app = express();
 app.use(express.json());
@@ -46,25 +47,47 @@ app.get("/api/health", async (req, res) => {
 
 // Auth
 app.post("/api/login", async (req, res) => {
-  const { password } = req.body;
-  console.log("Tentativa de login recebida");
+  const { username, password } = req.body;
+  console.log(`Tentativa de login recebida para o usuário: ${username || 'Mestre'}`);
   try {
-    const { data, error } = await supabase
+    // 1. Verificar se a senha informada corresponde à senha mestre (access_password)
+    const { data: masterPass, error: masterError } = await supabase
       .from("configuracao")
       .select("value")
       .eq("key", "access_password")
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      console.error("Erro ao buscar senha no Supabase:", error);
-      throw error;
+    if (masterError) {
+      console.error("Erro ao buscar senha mestre no Supabase:", masterError);
     }
 
-    if (data.value === password) {
-      console.log("Login bem-sucedido");
-      res.json({ success: true });
+    if (masterPass && (await bcrypt.compare(password, masterPass.value))) {
+      console.log("Login bem-sucedido via senha mestre");
+      return res.json({ success: true, user: { username: "admin", nome_conferente: "ADMINISTRADOR" } });
+    }
+
+    // 2. Se a senha mestre não coincidir e não houver username selecionado, retorna erro
+    if (!username) {
+      return res.status(401).json({ success: false, error: "Senha incorreta" });
+    }
+
+    // 3. Caso contrário, busca as credenciais do conferente específico
+    const { data: user, error } = await supabase
+      .from("usuarios")
+      .select("*")
+      .eq("username", username)
+      .maybeSingle();
+
+    if (error || !user) {
+      console.warn(`Usuário não encontrado: ${username}`);
+      return res.status(401).json({ success: false, error: "Conferente não encontrado" });
+    }
+
+    if (await bcrypt.compare(password, user.password)) {
+      console.log(`Login bem-sucedido para ${username}`);
+      res.json({ success: true, user: { username: user.username, nome_conferente: user.nome_conferente } });
     } else {
-      console.warn("Senha incorreta tentada");
+      console.warn(`Senha incorreta tentada para ${username}`);
       res.status(401).json({ success: false, error: "Senha incorreta" });
     }
   } catch (e: any) {
@@ -84,13 +107,15 @@ app.post("/api/update-password", async (req, res) => {
 
     if (fetchError) throw fetchError;
 
-    if (data.value !== oldPassword) {
+    const match = await bcrypt.compare(oldPassword, data.value);
+    if (!match) {
       return res.status(401).json({ error: "Senha antiga incorreta" });
     }
 
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     const { error: updateError } = await supabase
       .from("configuracao")
-      .update({ value: newPassword })
+      .update({ value: hashedNewPassword })
       .eq("key", "access_password");
 
     if (updateError) throw updateError;
@@ -98,6 +123,39 @@ app.post("/api/update-password", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("Erro ao atualizar senha:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post("/api/update-user-password", async (req, res) => {
+  const { username, oldPassword, newPassword } = req.body;
+  try {
+    const { data: user, error: fetchError } = await supabase
+      .from("usuarios")
+      .select("password")
+      .eq("username", username)
+      .single();
+
+    if (fetchError || !user) {
+      return res.status(404).json({ error: "Conferente não encontrado" });
+    }
+
+    const match = await bcrypt.compare(oldPassword, user.password);
+    if (!match) {
+      return res.status(401).json({ error: "Senha antiga incorreta" });
+    }
+
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+    const { error: updateError } = await supabase
+      .from("usuarios")
+      .update({ password: hashedNewPassword })
+      .eq("username", username);
+
+    if (updateError) throw updateError;
+
+    res.json({ success: true });
+  } catch (e: any) {
+    console.error("Erro ao atualizar senha do conferente:", e);
     res.status(500).json({ error: e.message });
   }
 });
@@ -439,13 +497,13 @@ app.get("/api/cautelas", async (req, res) => {
 });
 
 app.post("/api/cautelas", async (req, res) => {
-  const { militar_id, material_ids, observacoes, tipo, assinatura_militar, assinatura_encarregado, data_devolucao } = req.body;
+  const { militar_id, material_ids, observacoes, tipo, assinatura_militar, assinatura_encarregado, data_devolucao, conferente } = req.body;
 
   try {
     // 1. Create Cautela
     const { data: cautela, error: cautelaError } = await supabase
       .from("cautelas")
-      .insert([{ militar_id, observacoes, tipo: tipo || 'Permanente', assinatura_militar, assinatura_encarregado, data_devolucao }])
+      .insert([{ militar_id, observacoes, tipo: tipo || 'Permanente', assinatura_militar, assinatura_encarregado, data_devolucao, conferente }])
       .select()
       .single();
 

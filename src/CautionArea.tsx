@@ -8,6 +8,7 @@ import PdfPreviewModal from './PdfPreviewModal';
 import QrScanner from './QrScanner';
 import SignatureModal from './SignatureModal';
 import { useDebounce } from './useDebounce';
+import { useAuth } from './AuthContext';
 
 const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isSelected: boolean, onToggle: (id: number) => void }) => (
   <button
@@ -210,6 +211,7 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
 ));
 
 const CautionArea: React.FC = () => {
+  const { user } = useAuth();
   const [cautelas, setCautelas] = useState<Cautela[]>([]);
   const [militares, setMilitares] = useState<Militar[]>([]);
   const [materiais, setMateriais] = useState<Material[]>([]);
@@ -281,7 +283,8 @@ const CautionArea: React.FC = () => {
         observacoes,
         tipo: 'Permanente',
         assinatura_militar,
-        assinatura_encarregado
+        assinatura_encarregado,
+        conferente: user?.nome_conferente || ''
       })
     });
 

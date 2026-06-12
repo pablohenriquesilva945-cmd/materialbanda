@@ -8,6 +8,7 @@ import PdfPreviewModal from './PdfPreviewModal';
 import QrScanner from './QrScanner';
 import SignatureModal from './SignatureModal';
 import { useDebounce } from './useDebounce';
+import { useAuth } from './AuthContext';
 
 const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isSelected: boolean, onToggle: (id: number) => void }) => (
     <button
@@ -241,6 +242,7 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
 });
 
 const TemporaryCautionArea: React.FC = () => {
+    const { user } = useAuth();
     const [cautelas, setCautelas] = useState<Cautela[]>([]);
     const [militares, setMilitares] = useState<Militar[]>([]);
     const [materiais, setMateriais] = useState<Material[]>([]);
@@ -317,7 +319,8 @@ const TemporaryCautionArea: React.FC = () => {
             tipo: 'Temporária',
             data_devolucao: dataDevolucao ? new Date(`${dataDevolucao}T12:00:00Z`).toISOString() : null,
             assinatura_militar,
-            assinatura_encarregado
+            assinatura_encarregado,
+            conferente: user?.nome_conferente || ''
         };
         const res = await fetch('/api/cautelas', {
             method: 'POST',

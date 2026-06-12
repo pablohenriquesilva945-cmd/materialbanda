@@ -12,6 +12,7 @@ import { LogIn } from 'lucide-react';
 const AppContent: React.FC = () => {
   const { isAuthenticated, login, errorMsg } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
   if (!isAuthenticated) {
@@ -29,20 +30,34 @@ const AppContent: React.FC = () => {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
-              await login(password);
+              await login(username, password);
               setPassword('');
             }}
-            className="p-8 space-y-6"
+            className="p-8 space-y-5"
           >
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Acesso Restrito</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Identificação / Conferente</label>
+              <select
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="w-full px-4 py-3 bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-all text-base text-slate-800 font-semibold"
+              >
+                <option value="">Selecione um nome</option>
+                <option value="arthur">1S ARTHUR</option>
+                <option value="ivo">1S IVO</option>
+                <option value="everton">1S EVERTON</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2 ml-1">Senha de Acesso</label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                 }}
-                placeholder="Digite a senha de acesso"
+                placeholder="Digite sua senha"
                 className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary outline-none transition-all text-base"
               />
               {errorMsg && <p className="text-red-500 text-xs mt-2 font-medium ml-1">{errorMsg}</p>}
@@ -50,13 +65,13 @@ const AppContent: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full bg-primary hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 group"
+              className="w-full bg-primary hover:opacity-90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 group mt-2"
             >
               <span>Entrar no Sistema</span>
               <LogIn className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
 
-            <p className="text-center text-[10px] text-slate-400 uppercase tracking-widest">
+            <p className="text-center text-[10px] text-slate-400 uppercase tracking-widest pt-2">
               Uso exclusivo de militares autorizados
             </p>
           </form>

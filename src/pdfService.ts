@@ -156,23 +156,36 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
   let commanderSignature = null;
   let commanderName = "CAP VALDECI";
-  let conferenteName = "1S ARTHUR";
+  let conferenteName = cautela.conferente || "1S ARTHUR";
 
   try {
-    const [sigRes, namesRes] = await Promise.all([
-      fetch('/api/config/commander-signature'),
-      fetch('/api/config/names')
-    ]);
+    const fetchPromises: Promise<any>[] = [fetch('/api/config/commander-signature')];
+    if (!cautela.conferente) {
+      fetchPromises.push(fetch('/api/config/names'));
+    }
 
-    if (sigRes.ok) {
+    const results = await Promise.all(fetchPromises);
+    const sigRes = results[0];
+    const namesRes = results[1];
+
+    if (sigRes && sigRes.ok) {
       const data = await sigRes.json();
       commanderSignature = data.signature;
     }
 
-    if (namesRes.ok) {
+    if (namesRes && namesRes.ok) {
       const namesData = await namesRes.json();
       if (namesData.commander_name) commanderName = namesData.commander_name;
       if (namesData.conferente_name) conferenteName = namesData.conferente_name;
+    } else {
+      // Se não buscamos namesRes porque já temos o conferenteName, ainda precisamos buscar o commanderName
+      try {
+        const fallbackRes = await fetch('/api/config/names');
+        if (fallbackRes.ok) {
+          const namesData = await fallbackRes.json();
+          if (namesData.commander_name) commanderName = namesData.commander_name;
+        }
+      } catch (err) {}
     }
   } catch (e) {
     console.warn('Could not fetch commander signature or names', e);
