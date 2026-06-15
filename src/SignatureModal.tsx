@@ -7,9 +7,11 @@ interface SignatureModalProps {
   onClose: () => void;
   onConfirm: (militarSig: string, encarregadoSig: string) => void;
   militarNome: string;
+  itens?: { nome: string; bmp: string; marca?: string }[];
+  onPreviewPdf?: () => void;
 }
 
-const SignatureModal: React.FC<SignatureModalProps> = ({ isOpen, onClose, onConfirm, militarNome }) => {
+const SignatureModal: React.FC<SignatureModalProps> = ({ isOpen, onClose, onConfirm, militarNome, itens, onPreviewPdf }) => {
   const militarSigRef = useRef<SignatureCanvas>(null);
   const encarregadoSigRef = useRef<SignatureCanvas>(null);
 
@@ -44,6 +46,37 @@ const SignatureModal: React.FC<SignatureModalProps> = ({ isOpen, onClose, onConf
         </div>
 
         <div className="p-4 sm:p-6 overflow-y-auto space-y-6 sm:space-y-8 touch-pan-y">
+          {/* Prévia dos itens sendo cautelados/devolvidos */}
+          {itens && itens.length > 0 && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  Itens inclusos nesta operação ({itens.length})
+                </span>
+                {onPreviewPdf && (
+                  <button
+                    type="button"
+                    onClick={onPreviewPdf}
+                    className="text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg border border-emerald-200/50 cursor-pointer"
+                  >
+                    Visualizar Prévia do Termo (PDF)
+                  </button>
+                )}
+              </div>
+              <div className="max-h-32 overflow-y-auto divide-y divide-slate-100 border border-slate-200/60 rounded-xl bg-white px-3 shadow-sm">
+                {itens.map((item, idx) => (
+                  <div key={idx} className="py-2 flex justify-between items-center text-xs text-slate-700">
+                    <span className="font-bold text-slate-800">{item.nome}</span>
+                    <div className="flex items-center gap-2">
+                      {item.marca && <span className="text-[10px] text-slate-400 font-medium bg-slate-100 px-1.5 py-0.5 rounded">{item.marca}</span>}
+                      <span className="text-slate-500 font-mono text-[10px]">BMP: {item.bmp}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Militar Signature */}
           <div className="space-y-2 sm:space-y-3">
             <div className="flex items-center justify-between">

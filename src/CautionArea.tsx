@@ -366,6 +366,53 @@ const CautionArea: React.FC = () => {
     setCurrentCautelaForPreview(cautela);
   };
 
+  const handleSignatureModalPreview = async () => {
+    if (pendingBaixa) {
+      const tempCautela: Cautela = {
+        ...pendingBaixa.cautela,
+        itens: pendingBaixa.cautela.itens.filter(item => pendingBaixa.materialIds.includes(item.material_id)),
+        conferente: user?.nome_conferente || ''
+      };
+      const url = await previewTermoBaixa(tempCautela);
+      setPreviewUrl(url.toString());
+      setPreviewTitle(`Prévia do Termo de Devolução - ${pendingBaixa.cautela.militar_nome}`);
+    } else {
+      const militar = militares.find(m => m.id === parseInt(selectedMilitar));
+      if (!militar) return;
+      const tempCautela: Cautela = {
+        id: 0,
+        militar_id: militar.id,
+        militar_nome: militar.nome,
+        militar_saram: militar.saram,
+        militar_posto: militar.posto,
+        data_cautela: new Date().toISOString(),
+        status: 'Ativa',
+        tipo: 'Permanente',
+        observacoes,
+        itens: selectedMateriais.map(id => {
+          const m = materiais.find(item => item.id === id)!;
+          return {
+            id: m.id,
+            cautela_id: 0,
+            material_id: m.id,
+            nome: m.nome,
+            bmp: m.bmp,
+            marca: m.marca,
+            estado: m.estado,
+            estado_na_cautela: m.estado,
+            tipo: m.tipo,
+            status: m.status,
+            created_at: m.created_at
+          };
+        }),
+        conferente: user?.nome_conferente || ''
+      };
+      const url = await previewTermoCautela(tempCautela);
+      setPreviewUrl(url.toString());
+      setPreviewTitle(`Prévia do Termo de Cautela - ${militar.nome}`);
+    }
+  };
+
   const toggleMaterial = useCallback((id: number) => {
     setSelectedMateriais(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
@@ -428,6 +475,17 @@ const CautionArea: React.FC = () => {
         }}
         onConfirm={onSignatureConfirm}
         militarNome={pendingBaixa ? pendingBaixa.cautela.militar_nome : (militares.find(m => m.id === parseInt(selectedMilitar))?.nome || '')}
+        itens={
+          pendingBaixa
+            ? pendingBaixa.cautela.itens
+                .filter(item => pendingBaixa.materialIds.includes(item.material_id))
+                .map(item => ({ nome: item.nome, bmp: item.bmp, marca: item.marca }))
+            : selectedMateriais.map(id => {
+                const m = materiais.find(item => item.id === id);
+                return { nome: m?.nome || '', bmp: m?.bmp || '', marca: m?.marca };
+              })
+        }
+        onPreviewPdf={handleSignatureModalPreview}
       />
 
       {partialBaixaCautela && (
@@ -604,6 +662,42 @@ const CautionArea: React.FC = () => {
                     <div className="p-4 text-center text-slate-400 text-xs italic">Nenhum material.</div>
                   )}
                 </div>
+                {selectedMateriais.length > 0 && (
+                  <div className="space-y-2 mt-4 pt-4 border-t border-slate-200 animate-in fade-in duration-200">
+                    <div className="flex justify-between items-center px-1">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Itens Selecionados ({selectedMateriais.length})</label>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMateriais([])}
+                        className="text-[10px] font-bold text-red-500 hover:text-red-700 uppercase cursor-pointer"
+                      >
+                        Desmarcar Todos
+                      </button>
+                    </div>
+                    <div className="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto divide-y divide-slate-100 bg-slate-50">
+                      {selectedMateriais.map(id => {
+                        const m = materiais.find(item => item.id === id);
+                        if (!m) return null;
+                        return (
+                          <div key={m.id} className="flex items-center justify-between px-3 py-2 hover:bg-slate-100/50 transition-colors">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold text-slate-700">{m.nome}</span>
+                              <span className="text-[10px] text-slate-400">BMP: {m.bmp} {m.marca && `| ${m.marca}`}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => toggleMaterial(m.id)}
+                              className="text-slate-400 hover:text-red-500 p-1 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              title="Remover material"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-1.5">

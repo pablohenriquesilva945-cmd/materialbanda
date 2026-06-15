@@ -39,7 +39,7 @@ app.get("/api/health", async (req, res) => {
     status: "ok",
     database: dbStatus,
     supabaseUrl: supabaseUrl ? "Configured" : "Missing",
-    supabaseKey: supabaseAnonKey ? "Configured" : "Missing",
+    supabaseKey: supabaseKey ? "Configured" : "Missing",
     env: process.env.NODE_ENV,
     vercel: !!process.env.VERCEL
   });
