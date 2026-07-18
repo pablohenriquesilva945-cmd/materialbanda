@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Handshake, Search, CheckCircle, FileText, Download, History, X, QrCode, Trash2, Calendar, AlertTriangle } from 'lucide-react';
+import { Handshake, Search, CheckCircle, FileText, Download, History, X, QrCode, Trash2, Calendar, AlertTriangle, Plus } from 'lucide-react';
 import { Cautela, Militar, Material, CautelaItem as ICautelaItem } from './types';
 import { cn } from './utils';
 import { format, isPast, startOfDay } from 'date-fns';
@@ -39,11 +39,12 @@ const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isS
     </button>
 ));
 
-const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
+const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onAdicionarItem, onDelete }: {
     c: Cautela,
     listTab: 'Ativa' | 'Finalizada',
     onPreview: (c: Cautela) => void,
     onBaixa: (c: Cautela) => void,
+    onAdicionarItem: (c: Cautela) => void,
     onDelete: (id: number) => void
 }) => {
     const isOverdue = listTab === 'Ativa' && c.data_devolucao && (() => {
@@ -118,12 +119,22 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
                     <Download className="w-4 h-4" />
                 </button>
                 {listTab === 'Ativa' && (
-                    <button
-                        onClick={() => onBaixa(c)}
-                        className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
-                    >
-                        Dar Baixa
-                    </button>
+                    <div className="inline-flex gap-2">
+                        <button
+                            onClick={() => onAdicionarItem(c)}
+                            className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1"
+                            title="Adicionar Item"
+                        >
+                            <Plus className="w-3 h-3" />
+                            Adicionar
+                        </button>
+                        <button
+                            onClick={() => onBaixa(c)}
+                            className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
+                        >
+                            Dar Baixa
+                        </button>
+                    </div>
                 )}
                 {listTab === 'Finalizada' && (
                     <div className="flex items-center justify-end gap-2">
@@ -141,12 +152,12 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
         </tr>
     );
 });
-
-const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete }: {
+const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onAdicionarItem, onDelete }: {
     c: Cautela,
     listTab: 'Ativa' | 'Finalizada',
     onPreview: (c: Cautela) => void,
     onBaixa: (c: Cautela) => void,
+    onAdicionarItem: (c: Cautela) => void,
     onDelete: (id: number) => void
 }) => {
     const isOverdue = listTab === 'Ativa' && c.data_devolucao && (() => {
@@ -217,12 +228,21 @@ const CautelaMobileCard = React.memo(({ c, listTab, onPreview, onBaixa, onDelete
                     <Download className="w-4 h-4" />
                 </button>
                 {listTab === 'Ativa' && (
-                    <button
-                        onClick={() => onBaixa(c)}
-                        className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
-                    >
-                        Dar Baixa
-                    </button>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => onAdicionarItem(c)}
+                            className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            Adicionar
+                        </button>
+                        <button
+                            onClick={() => onBaixa(c)}
+                            className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
+                        >
+                            Dar Baixa
+                        </button>
+                    </div>
                 )}
                 {listTab === 'Finalizada' && (
                     <div className="flex items-center gap-2">
@@ -268,6 +288,11 @@ const TemporaryCautionArea: React.FC = () => {
     const [partialBaixaCautela, setPartialBaixaCautela] = useState<Cautela | null>(null);
     const [selectedBaixaItems, setSelectedBaixaItems] = useState<number[]>([]);
 
+    // Estados para adição de item
+    const [cautelaParaAdicionarItem, setCautelaParaAdicionarItem] = useState<Cautela | null>(null);
+    const [materialSelecionadoParaAdicao, setMaterialSelecionadoParaAdicao] = useState<number | null>(null);
+    const [pendingAdicaoItem, setPendingAdicaoItem] = useState<{ cautela: Cautela, materialId: number } | null>(null);
+
     const overdueCount = useMemo(() => {
         const hoje = new Date();
         hoje.setHours(0, 0, 0, 0);
@@ -302,13 +327,39 @@ const TemporaryCautionArea: React.FC = () => {
     };
 
     const onSignatureConfirm = async (militarSig: string, encarregadoSig: string) => {
-        if (pendingBaixa) {
+        if (pendingAdicaoItem) {
+            await finalizeAdicaoItem(pendingAdicaoItem, militarSig, encarregadoSig);
+        } else if (pendingBaixa) {
             await finalizeBaixa(pendingBaixa, militarSig, encarregadoSig);
         } else {
             await finalizeCautela(militarSig, encarregadoSig);
         }
         setIsSignatureModalOpen(false);
         setPendingBaixa(null);
+        setPendingAdicaoItem(null);
+    };
+
+    const finalizeAdicaoItem = async (pending: { cautela: Cautela, materialId: number }, assinatura_militar: string, assinatura_encarregado: string) => {
+        const res = await fetch(`/api/cautelas/${pending.cautela.id}/adicionar-item`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                material_id: pending.materialId,
+                assinatura_militar,
+                assinatura_encarregado,
+                conferente: user?.nome_conferente || ''
+            })
+        });
+
+        if (res.ok) {
+            setMaterialSelecionadoParaAdicao(null);
+            setCautelaParaAdicionarItem(null);
+            setMaterialSearch('');
+            fetchData();
+        } else {
+            const data = await res.json();
+            alert(data.error || 'Erro ao adicionar item à cautela');
+        }
     };
 
     const finalizeCautela = async (assinatura_militar: string, assinatura_encarregado: string) => {
@@ -375,7 +426,8 @@ const TemporaryCautionArea: React.FC = () => {
             body: JSON.stringify({
                 itens_estados,
                 assinatura_militar,
-                assinatura_encarregado
+                assinatura_encarregado,
+                conferente: user?.nome_conferente || ''
             })
         });
 
@@ -398,7 +450,32 @@ const TemporaryCautionArea: React.FC = () => {
     };
 
     const handleSignatureModalPreview = async () => {
-        if (pendingBaixa) {
+        if (pendingAdicaoItem) {
+            const m = materiais.find(item => item.id === pendingAdicaoItem.materialId)!;
+            const tempCautela: Cautela = {
+                ...pendingAdicaoItem.cautela,
+                itens: [
+                    ...pendingAdicaoItem.cautela.itens,
+                    {
+                        id: m.id,
+                        cautela_id: pendingAdicaoItem.cautela.id,
+                        material_id: m.id,
+                        nome: m.nome,
+                        bmp: m.bmp,
+                        marca: m.marca,
+                        estado: m.estado,
+                        estado_na_cautela: m.estado,
+                        tipo: m.tipo,
+                        status: m.status,
+                        created_at: m.created_at
+                    }
+                ],
+                conferente: user?.nome_conferente || ''
+            };
+            const url = await previewTermoCautela(tempCautela);
+            setPreviewUrl(url.toString());
+            setPreviewTitle(`Prévia do Termo Temporário (Adição) - ${pendingAdicaoItem.cautela.militar_nome}`);
+        } else if (pendingBaixa) {
             const tempCautela: Cautela = {
                 ...pendingBaixa.cautela,
                 itens: pendingBaixa.cautela.itens.filter(item => pendingBaixa.materialIds.includes(item.material_id)),
@@ -499,18 +576,31 @@ const TemporaryCautionArea: React.FC = () => {
 
             <SignatureModal
                 isOpen={isSignatureModalOpen}
-                onClose={() => { setIsSignatureModalOpen(false); setPendingBaixa(null); }}
+                onClose={() => {
+                    setIsSignatureModalOpen(false);
+                    setPendingBaixa(null);
+                    setPendingAdicaoItem(null);
+                }}
                 onConfirm={onSignatureConfirm}
-                militarNome={pendingBaixa ? pendingBaixa.cautela.militar_nome : (militares.find(m => m.id === parseInt(selectedMilitar))?.nome || '')}
+                militarNome={
+                    pendingAdicaoItem
+                        ? pendingAdicaoItem.cautela.militar_nome
+                        : (pendingBaixa ? pendingBaixa.cautela.militar_nome : (militares.find(m => m.id === parseInt(selectedMilitar))?.nome || ''))
+                }
                 itens={
-                    pendingBaixa
-                        ? pendingBaixa.cautela.itens
-                            .filter(item => pendingBaixa.materialIds.includes(item.material_id))
-                            .map(item => ({ nome: item.nome, bmp: item.bmp, marca: item.marca }))
-                        : selectedMateriais.map(id => {
-                            const m = materiais.find(item => item.id === id);
+                    pendingAdicaoItem
+                        ? [(() => {
+                            const m = materiais.find(item => item.id === pendingAdicaoItem.materialId);
                             return { nome: m?.nome || '', bmp: m?.bmp || '', marca: m?.marca };
-                        })
+                        })()]
+                        : (pendingBaixa
+                            ? pendingBaixa.cautela.itens
+                                .filter(item => pendingBaixa.materialIds.includes(item.material_id))
+                                .map(item => ({ nome: item.nome, bmp: item.bmp, marca: item.marca }))
+                            : selectedMateriais.map(id => {
+                                const m = materiais.find(item => item.id === id);
+                                return { nome: m?.nome || '', bmp: m?.bmp || '', marca: m?.marca };
+                            }))
                 }
                 onPreviewPdf={handleSignatureModalPreview}
             />
@@ -566,6 +656,92 @@ const TemporaryCautionArea: React.FC = () => {
                         }
                     }}
                 />
+            )}
+
+            {cautelaParaAdicionarItem && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col p-6 animate-in zoom-in-95 duration-200">
+                        <h3 className="text-lg font-bold text-slate-800 mb-2">Adicionar Item à Cautela Temporária</h3>
+                        <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                            Selecione um material disponível para associar à cautela de <strong>{cautelaParaAdicionarItem.militar_nome}</strong>.
+                        </p>
+
+                        {/* Buscador de Material */}
+                        <div className="space-y-3 mb-6">
+                            <div className="relative">
+                                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    type="text"
+                                    value={materialSearch}
+                                    onChange={e => setMaterialSearch(e.target.value)}
+                                    placeholder="Buscar material disponível..."
+                                    className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white outline-none transition-all"
+                                />
+                                {materialSearch && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setMaterialSearch('')}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="border border-slate-200 rounded-xl overflow-hidden divide-y divide-slate-100 max-h-[200px] overflow-y-auto bg-slate-50">
+                                {filteredMateriaisDisponiveis.length === 0 ? (
+                                    <div className="p-4 text-center text-xs text-slate-400">Nenhum material disponível encontrado</div>
+                                ) : (
+                                    filteredMateriaisDisponiveis.map(m => {
+                                        const isSelected = materialSelecionadoParaAdicao === m.id;
+                                        return (
+                                            <button
+                                                key={m.id}
+                                                type="button"
+                                                onClick={() => setMaterialSelecionadoParaAdicao(m.id)}
+                                                className={cn(
+                                                    "w-full text-left px-4 py-2.5 cursor-pointer flex items-center justify-between transition-all border-l-4",
+                                                    isSelected ? "bg-amber-50 border-amber-500 shadow-sm" : "hover:bg-slate-50 border-transparent"
+                                                )}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <span className={cn("text-xs font-bold", isSelected ? "text-amber-800" : "text-slate-700")}>{m.nome}</span>
+                                                    <span className="text-[9px] text-slate-400 uppercase">BMP: {m.bmp}</span>
+                                                </div>
+                                                {isSelected && <CheckCircle className="w-4 h-4 text-amber-500" />}
+                                            </button>
+                                        );
+                                    })
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex gap-3 justify-end pt-4 border-t border-slate-100">
+                            <button
+                                onClick={() => {
+                                    setCautelaParaAdicionarItem(null);
+                                    setMaterialSelecionadoParaAdicao(null);
+                                    setMaterialSearch('');
+                                }}
+                                className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-100 rounded-xl transition-all"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (!materialSelecionadoParaAdicao) return;
+                                    setPendingAdicaoItem({ cautela: cautelaParaAdicionarItem, materialId: materialSelecionadoParaAdicao });
+                                    setCautelaParaAdicionarItem(null);
+                                    setIsSignatureModalOpen(true);
+                                }}
+                                disabled={!materialSelecionadoParaAdicao}
+                                className="bg-amber-500 hover:bg-amber-600 text-white font-bold px-6 py-2 rounded-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20"
+                            >
+                                Prosseguir para Assinatura
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -763,6 +939,11 @@ const TemporaryCautionArea: React.FC = () => {
                                             listTab={listTab}
                                             onPreview={handlePreview}
                                             onBaixa={handleBaixaInit}
+                                            onAdicionarItem={(cautela) => {
+                                                setCautelaParaAdicionarItem(cautela);
+                                                setMaterialSelecionadoParaAdicao(null);
+                                                setMaterialSearch('');
+                                            }}
                                             onDelete={handleDeleteCautela}
                                         />
                                     ))}
@@ -777,6 +958,11 @@ const TemporaryCautionArea: React.FC = () => {
                                     listTab={listTab}
                                     onPreview={handlePreview}
                                     onBaixa={handleBaixaInit}
+                                    onAdicionarItem={(cautela) => {
+                                        setCautelaParaAdicionarItem(cautela);
+                                        setMaterialSelecionadoParaAdicao(null);
+                                        setMaterialSearch('');
+                                    }}
                                     onDelete={handleDeleteCautela}
                                 />
                             ))}

@@ -77,11 +77,33 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
     styles: { fontSize: 9 }
   });
 
-  const finalY = (doc as any).lastAutoTable.finalY + 8; // reduced gap
+  let currentY = (doc as any).lastAutoTable.finalY + 8; // reduced gap
 
-  // 3. TERMO DE RESPONSABILIDADE / DECLARAÇÃO
+  // 3. OBSERVAÇÕES (Optional)
+  if (cautela.observacoes && cautela.observacoes.trim() !== '') {
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('3. OBSERVAÇÕES', 20, currentY);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+
+    const obsText = cautela.observacoes.trim();
+    doc.text(obsText, 20, currentY + 5, {
+      align: 'justify',
+      maxWidth: pageWidth - 40,
+      lineHeightFactor: 1.4
+    });
+
+    const obsLines = doc.splitTextToSize(obsText, pageWidth - 40);
+    const obsHeight = obsLines.length * 5.2; // line height estimation for font size 10 with 1.4 line factor
+    currentY = currentY + 5 + obsHeight + 8;
+  }
+
+  // 3. ou 4. TERMO DE RESPONSABILIDADE / DECLARAÇÃO
+  const sectionNum = (cautela.observacoes && cautela.observacoes.trim() !== '') ? '4' : '3';
+  doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
-  doc.text(type === 'Cautela' ? '3. TERMO DE RESPONSABILIDADE' : '3. DECLARAÇÃO DE DEVOLUÇÃO', 20, finalY);
+  doc.text(type === 'Cautela' ? `${sectionNum}. TERMO DE RESPONSABILIDADE` : `${sectionNum}. DECLARAÇÃO DE DEVOLUÇÃO`, 20, currentY);
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
 
@@ -96,7 +118,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'normal');
 
   // jsPDF text with maxWidth and align justify can be tricky with the last line.
-  doc.text(responsibilityText, 20, finalY + 5, {
+  doc.text(responsibilityText, 20, currentY + 5, {
     align: 'justify',
     maxWidth: pageWidth - 40,
     lineHeightFactor: 1.5
@@ -106,7 +128,7 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   const textLines = doc.splitTextToSize(responsibilityText, pageWidth - 40);
   const textHeight = textLines.length * 6; // slightly tighter line height estimation
 
-  let signatureY = finalY + textHeight + 6; // reduced gap
+  let signatureY = currentY + 5 + textHeight + 6; // reduced gap
 
   // Check if we need a new page for signatures
   // A4 height is 297mm.

@@ -528,7 +528,7 @@ app.post("/api/cautelas", async (req, res) => {
 
 app.post("/api/cautelas/:id/baixa", async (req, res) => {
   const { id } = req.params;
-  const { itens_estados, assinatura_militar, assinatura_encarregado } = req.body;
+  const { itens_estados, assinatura_militar, assinatura_encarregado, conferente } = req.body;
 
   try {
     const { data: cautelaAtual, error: fetchError } = await supabase
@@ -543,44 +543,45 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
     const keptItems = cautelaAtual.itens.filter((i: any) => !returnedItemIds.includes(i.material_id));
 
     if (keptItems.length > 0) {
-      const { data: newCautela, error: newCautelaError } = await supabase
+      // Baixa parcial:
+      // 1. Remove os itens devolvidos (returnedItemIds) da cautela atual
+      const { error: deleteError } = await supabase
+        .from("cautela_itens")
+        .delete()
+        .eq("cautela_id", id)
+        .in("material_id", returnedItemIds);
+
+      if (deleteError) throw deleteError;
+
+      // 2. Atualiza a cautela atual (que continua ativa) com as novas assinaturas, conferente e data atualizada
+      const { error: updateCautelaError } = await supabase
         .from("cautelas")
-        .insert([{
-          militar_id: cautelaAtual.militar_id,
-          observacoes: cautelaAtual.observacoes,
-          tipo: cautelaAtual.tipo,
-          data_cautela: cautelaAtual.data_cautela,
-          data_devolucao: cautelaAtual.data_devolucao,
-          assinatura_militar: cautelaAtual.assinatura_militar,
-          assinatura_encarregado: cautelaAtual.assinatura_encarregado,
-          status: 'Ativa'
-        }])
-        .select()
-        .single();
+        .update({
+          assinatura_militar,
+          assinatura_encarregado,
+          conferente: conferente || cautelaAtual.conferente,
+          data_cautela: new Date().toISOString()
+        })
+        .eq("id", id);
 
-      if (newCautelaError) throw newCautelaError;
+      if (updateCautelaError) throw updateCautelaError;
+    } else {
+      // Baixa total: finaliza a cautela original
+      const { error: cautelaError } = await supabase
+        .from("cautelas")
+        .update({
+          status: 'Finalizada',
+          data_baixa: new Date().toISOString(),
+          assinatura_militar,
+          assinatura_encarregado,
+          conferente: conferente || cautelaAtual.conferente
+        })
+        .eq("id", id);
 
-      for (const kept of keptItems) {
-        const { error: updateItemError } = await supabase
-          .from("cautela_itens")
-          .update({ cautela_id: newCautela.id })
-          .eq("id", kept.id);
-        if (updateItemError) throw updateItemError;
-      }
+      if (cautelaError) throw cautelaError;
     }
 
-    const { error: cautelaError } = await supabase
-      .from("cautelas")
-      .update({
-        status: 'Finalizada',
-        data_baixa: new Date().toISOString(),
-        assinatura_militar,
-        assinatura_encarregado
-      })
-      .eq("id", id);
-
-    if (cautelaError) throw cautelaError;
-
+    // 3. Atualiza os materiais devolvidos para Disponível ou Manutenção
     for (const item of itens_estados) {
       const status = item.novo_estado === 'Manutenção' ? 'Manutenção' : 'Disponível';
       const { error: matError } = await supabase
@@ -594,6 +595,58 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("Erro ao dar baixa:", e);
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.post("/api/cautelas/:id/adicionar-item", async (req, res) => {
+  const { id } = req.params;
+  const { material_id, assinatura_militar, assinatura_encarregado, conferente } = req.body;
+
+  try {
+    // 1. Verificar se o material está disponível
+    const { data: material, error: matFetchError } = await supabase
+      .from("materiais")
+      .select("estado, status")
+      .eq("id", material_id)
+      .single();
+
+    if (matFetchError) throw matFetchError;
+    if (material.status !== 'Disponível') {
+      return res.status(400).json({ error: "Material não está disponível para cautela." });
+    }
+
+    // 2. Associar o material à cautela
+    const { error: itemError } = await supabase
+      .from("cautela_itens")
+      .insert([{ cautela_id: id, material_id, estado_na_cautela: material.estado }]);
+
+    if (itemError) throw itemError;
+
+    // 3. Atualizar status do material para Cautelado
+    const { error: matUpdateError } = await supabase
+      .from("materiais")
+      .update({ status: 'Cautelado' })
+      .eq("id", material_id);
+
+    if (matUpdateError) throw matUpdateError;
+
+    // 4. Atualizar a cautela com as novas assinaturas, conferente e data atualizada
+    const { error: updateCautelaError } = await supabase
+      .from("cautelas")
+      .update({
+        assinatura_militar,
+        assinatura_encarregado,
+        conferente,
+        data_cautela: new Date().toISOString()
+      })
+      .eq("id", id);
+
+    if (updateCautelaError) throw updateCautelaError;
+
+    res.json({ success: true });
+  } catch (e: any) {
+    console.error("Erro ao adicionar item à cautela:", e);
     res.status(400).json({ error: e.message });
   }
 });
