@@ -35,7 +35,10 @@ const InventoryArea: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.nome || !formData.bmp) return;
+    
+    // Para Acessório, bmp não é obrigatório no formulário (será gerado)
+    const isBmpRequired = activeSubTab !== 'Acessório';
+    if (!formData.nome || (isBmpRequired && !formData.bmp)) return;
 
     setIsSubmitting(true);
     setError(null);
@@ -44,10 +47,21 @@ const InventoryArea: React.FC = () => {
       const url = editingId ? `/api/materiais/${editingId}` : '/api/materiais';
       const method = editingId ? 'PUT' : 'POST';
 
+      const finalBmp = activeSubTab === 'Acessório'
+        ? (formData.bmp || `AC-${Date.now()}`)
+        : formData.bmp;
+
+      const finalMarca = '';
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, tipo: activeSubTab })
+        body: JSON.stringify({ 
+          ...formData, 
+          bmp: finalBmp,
+          marca: finalMarca,
+          tipo: activeSubTab 
+        })
       });
 
       const data = await res.json();
@@ -164,37 +178,37 @@ const InventoryArea: React.FC = () => {
         <div className="p-6">
           <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Nome do Item</label>
+              <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">
+                Nome do Item (com Marca/Modelo)
+              </label>
               <input
                 type="text"
                 value={formData.nome}
                 onChange={e => setFormData({ ...formData, nome: e.target.value })}
                 className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
-                placeholder={`Ex: ${activeSubTab === 'Instrumento' ? 'Saxofone Alto' : activeSubTab === 'Acessório' ? 'Bocal 7C' : 'Estante'}`}
+                placeholder={
+                  activeSubTab === 'Instrumento' 
+                    ? 'Ex: Saxofone Alto Yamaha YAS-23 (Nome + Marca/Modelo)' 
+                    : activeSubTab === 'Acessório' 
+                      ? 'Ex: Bocal 7C Bach (Nome + Marca/Modelo)' 
+                      : 'Ex: Estante K&M (Nome + Marca/Modelo)'
+                }
                 required
               />
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">BMP (Patrimônio)</label>
-              <input
-                type="text"
-                value={formData.bmp}
-                onChange={e => setFormData({ ...formData, bmp: e.target.value })}
-                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
-                placeholder="Ex: 123456"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Marca/Modelo</label>
-              <input
-                type="text"
-                value={formData.marca}
-                onChange={e => setFormData({ ...formData, marca: e.target.value })}
-                className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
-                placeholder="Ex: Yamaha"
-              />
-            </div>
+            {activeSubTab !== 'Acessório' && (
+              <div>
+                <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">BMP (Patrimônio)</label>
+                <input
+                  type="text"
+                  value={formData.bmp}
+                  onChange={e => setFormData({ ...formData, bmp: e.target.value })}
+                  className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none"
+                  placeholder="Ex: 123456"
+                  required
+                />
+              </div>
+            )}
             <div>
               <label className="block text-xs font-bold text-slate-600 uppercase mb-1 ml-1">Estado</label>
               <select
@@ -270,7 +284,7 @@ const InventoryArea: React.FC = () => {
               value={filter}
               onChange={e => setFilter(e.target.value)}
               className="pl-10 w-full border-slate-300 rounded-full text-sm focus:ring-primary focus:border-primary truncate"
-              placeholder="Buscar por nome, BMP ou marca/modelo..."
+              placeholder="Buscar por nome, BMP ou cautelado por..."
             />
           </div>
         </div>
@@ -280,7 +294,6 @@ const InventoryArea: React.FC = () => {
               <tr className="bg-slate-50">
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Nome</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">BMP</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Marca/Modelo</th>
                 {activeSubTab === 'Outros' && <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Lugar</th>}
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Estado</th>
                 <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider border-b">Status</th>
@@ -293,7 +306,6 @@ const InventoryArea: React.FC = () => {
                 <tr key={m.id} className="hover:bg-slate-50 transition-colors">
                   <td className="px-6 py-4 text-sm font-medium text-slate-900">{m.nome}</td>
                   <td className="px-6 py-4 text-sm text-slate-600">{m.bmp}</td>
-                  <td className="px-6 py-4 text-sm text-slate-600">{m.marca || '-'}</td>
                   {activeSubTab === 'Outros' && <td className="px-6 py-4 text-sm text-slate-600">{m.lugar || '-'}</td>}
                   <td className="px-6 py-4">
                     <span className={cn(
@@ -352,7 +364,6 @@ const InventoryArea: React.FC = () => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm font-bold text-slate-900">{m.nome}</p>
-                  <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">{m.marca || 'Sem marca/modelo'}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   <button onClick={() => handleEdit(m)} className="p-2 text-slate-400 hover:text-primary transition-colors bg-slate-50 rounded-lg">
