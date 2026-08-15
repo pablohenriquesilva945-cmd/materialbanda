@@ -21,9 +21,16 @@ const MilitaryArea: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMilitares = () => {
-    fetch('/api/militares', { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } })
+    fetch(`/api/militares?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
       .then(res => res.json())
-      .then(data => setMilitares(data));
+      .then(data => setMilitares(data))
+      .catch(err => console.error("Erro ao buscar militares:", err));
   };
 
   useEffect(() => {

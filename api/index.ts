@@ -25,6 +25,15 @@ const supabase = createClient(supabaseUrl || "", supabaseKey || "");
 const app = express();
 app.use(express.json());
 
+// Evitar qualquer cache indesejado nas respostas das APIs
+app.use("/api", (req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  res.setHeader("Surrogate-Control", "no-store");
+  next();
+});
+
 // API Routes
 app.get("/api/health", async (req, res) => {
   let dbStatus = "Unknown";
@@ -537,7 +546,37 @@ app.post("/api/cautelas", async (req, res) => {
     if (insertItensRes.error) throw insertItensRes.error;
     if (updateMatRes.error) throw updateMatRes.error;
 
-    res.json({ id: cautelaId });
+    // 4. Buscar a cautela recém-criada com os dados completos para retorno imediato ao frontend
+    const { data: novaCautela } = await supabase
+      .from("cautelas")
+      .select(`
+        *,
+        militar:militares (nome, saram, posto),
+        itens:cautela_itens (
+          *,
+          material:materiais (nome, bmp, marca)
+        )
+      `)
+      .eq("id", cautelaId)
+      .maybeSingle();
+
+    let formattedCautela = null;
+    if (novaCautela) {
+      formattedCautela = {
+        ...novaCautela,
+        militar_nome: novaCautela.militar?.nome,
+        militar_saram: novaCautela.militar?.saram,
+        militar_posto: novaCautela.militar?.posto,
+        itens: novaCautela.itens?.map((i: any) => ({
+          ...i,
+          nome: i.material?.nome,
+          bmp: i.material?.bmp,
+          marca: i.material?.marca
+        })) || []
+      };
+    }
+
+    res.json({ id: cautelaId, cautela: formattedCautela });
   } catch (e: any) {
     console.error("Erro ao cadastrar cautela:", e);
     res.status(400).json({ error: e.message });

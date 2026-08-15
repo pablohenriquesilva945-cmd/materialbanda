@@ -24,9 +24,16 @@ const InventoryArea: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMateriais = () => {
-    fetch('/api/materiais', { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } })
+    fetch(`/api/materiais?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
       .then(res => res.json())
-      .then(data => setMateriais(data));
+      .then(data => setMateriais(data))
+      .catch(err => console.error("Erro ao buscar materiais:", err));
   };
 
   useEffect(() => {

@@ -15,7 +15,13 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   });
 
   useEffect(() => {
-    fetch('/api/stats')
+    fetch(`/api/stats?_t=${Date.now()}`, {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache'
+      }
+    })
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(err => console.error("Erro ao carregar estatísticas:", err));

@@ -272,15 +272,26 @@ const CautionArea: React.FC = () => {
   const debouncedRecordSearch = useDebounce(recordSearch, 300);
 
   const fetchData = async () => {
-    const opts = { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } };
-    const [cRes, mRes, matRes] = await Promise.all([
-      fetch('/api/cautelas', opts),
-      fetch('/api/militares', opts),
-      fetch('/api/materiais', opts)
-    ]);
-    setCautelas(await cRes.json());
-    setMilitares(await mRes.json());
-    setMateriais(await matRes.json());
+    try {
+      const timestamp = Date.now();
+      const opts: RequestInit = {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
+      };
+      const [cRes, mRes, matRes] = await Promise.all([
+        fetch(`/api/cautelas?_t=${timestamp}`, opts),
+        fetch(`/api/militares?_t=${timestamp}`, opts),
+        fetch(`/api/materiais?_t=${timestamp}`, opts)
+      ]);
+      if (cRes.ok) setCautelas(await cRes.json());
+      if (mRes.ok) setMilitares(await mRes.json());
+      if (matRes.ok) setMateriais(await matRes.json());
+    } catch (err) {
+      console.error("Erro ao carregar dados:", err);
+    }
   };
 
   useEffect(() => {
@@ -322,7 +333,7 @@ const CautionArea: React.FC = () => {
       setMaterialSelecionadoParaAdicao(null);
       setCautelaParaAdicionarItem(null);
       setMaterialSearch('');
-      fetchData();
+      await fetchData();
     } else {
       const data = await res.json();
       alert(data.error || 'Erro ao adicionar item à cautela');
@@ -330,28 +341,44 @@ const CautionArea: React.FC = () => {
   };
 
   const finalizeCautela = async (assinatura_militar: string, assinatura_encarregado: string) => {
-    const res = await fetch('/api/cautelas', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        militar_id: parseInt(selectedMilitar),
-        material_ids: selectedMateriais,
-        observacoes,
-        tipo: 'Permanente',
-        assinatura_militar,
-        assinatura_encarregado,
-        conferente: user?.nome_conferente || ''
-      })
-    });
+    try {
+      const res = await fetch('/api/cautelas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          militar_id: parseInt(selectedMilitar),
+          material_ids: selectedMateriais,
+          observacoes,
+          tipo: 'Permanente',
+          assinatura_militar,
+          assinatura_encarregado,
+          conferente: user?.nome_conferente || ''
+        })
+      });
 
-    if (res.ok) {
-      const data = await res.json();
-      setLastCautelaId(data.id);
-      setShowSuccess(true);
-      setSelectedMilitar('');
-      setSelectedMateriais([]);
-      setObservacoes('');
-      fetchData();
+      if (res.ok) {
+        const data = await res.json();
+        setLastCautelaId(data.id);
+        setShowSuccess(true);
+        setSelectedMilitar('');
+        setSelectedMateriais([]);
+        setObservacoes('');
+        setRecordSearch(''); // Limpa a busca para exibir a nova cautela imediatamente
+        setListTab('Ativa');  // Garante que está na aba Cautelas Ativas
+
+        // Atualiza imediatamente o estado com a nova cautela
+        if (data.cautela) {
+          setCautelas(prev => [data.cautela, ...prev.filter(c => c.id !== data.id)]);
+        }
+
+        await fetchData();
+      } else {
+        const data = await res.json();
+        alert(data.error || 'Erro ao cadastrar cautela');
+      }
+    } catch (err) {
+      console.error("Erro ao finalizar cautela:", err);
+      alert('Erro de conexão ao realizar cautela');
     }
   };
 
@@ -363,7 +390,8 @@ const CautionArea: React.FC = () => {
     });
 
     if (res.ok) {
-      fetchData();
+      setCautelas(prev => prev.filter(c => c.id !== id));
+      await fetchData();
     } else {
       const data = await res.json();
       alert(data.error || 'Erro ao excluir cautela');
