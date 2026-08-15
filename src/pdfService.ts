@@ -155,8 +155,12 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
   // Signature 1: Militar (Left)
   doc.line(20, row1Y, 90, row1Y);
-  if (cautela.assinatura_militar) {
-    doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 2, 50, 15);
+  if (cautela.assinatura_militar && cautela.assinatura_militar.startsWith('data:image')) {
+    try {
+      doc.addImage(cautela.assinatura_militar, 'PNG', 30, signatureY + 2, 50, 15);
+    } catch (e) {
+      console.warn('Erro ao inserir assinatura do militar:', e);
+    }
   }
   doc.setFont('helvetica', 'bold');
   doc.text(type === 'Cautela' ? 'MILITAR RECEBEDOR' : 'MILITAR QUE DEVOLVEU', 55, row1Y + 3, { align: 'center' });
@@ -166,8 +170,12 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   // Signature 2: Conferente (Right)
   doc.setFont('helvetica', 'bold');
   doc.line(120, row1Y, 190, row1Y);
-  if (cautela.assinatura_encarregado) {
-    doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 2, 50, 15);
+  if (cautela.assinatura_encarregado && cautela.assinatura_encarregado.startsWith('data:image')) {
+    try {
+      doc.addImage(cautela.assinatura_encarregado, 'PNG', 130, signatureY + 2, 50, 15);
+    } catch (e) {
+      console.warn('Erro ao inserir assinatura do encarregado:', e);
+    }
   }
   doc.text('CONFERENTE', 155, row1Y + 3, { align: 'center' });
 

@@ -484,7 +484,7 @@ app.post("/api/cautelas", async (req, res) => {
   const { militar_id, material_ids, observacoes, tipo, assinatura_militar, assinatura_encarregado, data_devolucao, conferente } = req.body;
 
   try {
-    // 1. Create Cautela
+    // 1. Criar a Cautela
     const { data: cautela, error: cautelaError } = await supabase
       .from("cautelas")
       .insert([{ militar_id, observacoes, tipo: tipo || 'Permanente', assinatura_militar, assinatura_encarregado, data_devolucao, conferente }])
@@ -492,32 +492,31 @@ app.post("/api/cautelas", async (req, res) => {
       .single();
 
     if (cautelaError) throw cautelaError;
-
     const cautelaId = cautela.id;
 
-    // 2. Create Itens and Update Materiais
-    for (const matId of material_ids) {
-      const { data: material, error: matFetchError } = await supabase
-        .from("materiais")
-        .select("estado")
-        .eq("id", matId)
-        .single();
+    // 2. Buscar todos os materiais de uma só vez (Batch Fetch)
+    const { data: materiaisList, error: matFetchError } = await supabase
+      .from("materiais")
+      .select("id, estado")
+      .in("id", material_ids);
 
-      if (matFetchError) throw matFetchError;
+    if (matFetchError) throw matFetchError;
 
-      const { error: itemError } = await supabase
-        .from("cautela_itens")
-        .insert([{ cautela_id: cautelaId, material_id: matId, estado_na_cautela: material.estado }]);
+    const materialMap = new Map(materiaisList?.map(m => [m.id, m.estado]));
+    const itensToInsert = material_ids.map((matId: number) => ({
+      cautela_id: cautelaId,
+      material_id: matId,
+      estado_na_cautela: materialMap.get(matId) || 'Bom'
+    }));
 
-      if (itemError) throw itemError;
+    // 3. Inserir itens em lote e atualizar status em paralelo (Parallel Batch Execution)
+    const [insertItensRes, updateMatRes] = await Promise.all([
+      supabase.from("cautela_itens").insert(itensToInsert),
+      supabase.from("materiais").update({ status: 'Cautelado' }).in("id", material_ids)
+    ]);
 
-      const { error: matUpdateError } = await supabase
-        .from("materiais")
-        .update({ status: 'Cautelado' })
-        .eq("id", matId);
-
-      if (matUpdateError) throw matUpdateError;
-    }
+    if (insertItensRes.error) throw insertItensRes.error;
+    if (updateMatRes.error) throw updateMatRes.error;
 
     res.json({ id: cautelaId });
   } catch (e: any) {
@@ -544,7 +543,7 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
 
     if (keptItems.length > 0) {
       // Baixa parcial:
-      // 1. Remove os itens devolvidos (returnedItemIds) da cautela atual
+      // 1. Remove os itens devolvidos da cautela atual
       const { error: deleteError } = await supabase
         .from("cautela_itens")
         .delete()
@@ -553,7 +552,7 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
 
       if (deleteError) throw deleteError;
 
-      // 2. Atualiza a cautela atual (que continua ativa) com as novas assinaturas, conferente e data atualizada
+      // 2. Atualiza a cautela atual (que continua ativa)
       const { error: updateCautelaError } = await supabase
         .from("cautelas")
         .update({
@@ -581,16 +580,23 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
       if (cautelaError) throw cautelaError;
     }
 
-    // 3. Atualiza os materiais devolvidos para Disponível ou Manutenção
+    // 3. Atualizar materiais devolvidos agrupando por estado (Batch Update)
+    const updatesByState: Record<string, number[]> = {};
     for (const item of itens_estados) {
-      const status = item.novo_estado === 'Manutenção' ? 'Manutenção' : 'Disponível';
-      const { error: matError } = await supabase
-        .from("materiais")
-        .update({ estado: item.novo_estado, status: status })
-        .eq("id", item.material_id);
-
-      if (matError) throw matError;
+      const state = item.novo_estado || 'Bom';
+      if (!updatesByState[state]) updatesByState[state] = [];
+      updatesByState[state].push(item.material_id);
     }
+
+    await Promise.all(
+      Object.entries(updatesByState).map(([estado, matIds]) => {
+        const status = estado === 'Manutenção' ? 'Manutenção' : 'Disponível';
+        return supabase
+          .from("materiais")
+          .update({ estado, status })
+          .in("id", matIds);
+      })
+    );
 
     res.json({ success: true });
   } catch (e: any) {
@@ -604,7 +610,7 @@ app.post("/api/cautelas/:id/adicionar-item", async (req, res) => {
   const { material_id, assinatura_militar, assinatura_encarregado, conferente } = req.body;
 
   try {
-    // 1. Verificar se o material está disponível
+    // 1. Buscar o material
     const { data: material, error: matFetchError } = await supabase
       .from("materiais")
       .select("estado, status")
@@ -612,37 +618,25 @@ app.post("/api/cautelas/:id/adicionar-item", async (req, res) => {
       .single();
 
     if (matFetchError) throw matFetchError;
-    if (material.status !== 'Disponível') {
-      return res.status(400).json({ error: "Material não está disponível para cautela." });
+    if (material.status === 'Cautelado') {
+      return res.status(400).json({ error: "Material já está cautelado." });
     }
 
-    // 2. Associar o material à cautela
-    const { error: itemError } = await supabase
-      .from("cautela_itens")
-      .insert([{ cautela_id: id, material_id, estado_na_cautela: material.estado }]);
-
-    if (itemError) throw itemError;
-
-    // 3. Atualizar status do material para Cautelado
-    const { error: matUpdateError } = await supabase
-      .from("materiais")
-      .update({ status: 'Cautelado' })
-      .eq("id", material_id);
-
-    if (matUpdateError) throw matUpdateError;
-
-    // 4. Atualizar a cautela com as novas assinaturas, conferente e data atualizada
-    const { error: updateCautelaError } = await supabase
-      .from("cautelas")
-      .update({
+    // 2. Operações em paralelo
+    const [itemRes, matUpdateRes, cautelaUpdateRes] = await Promise.all([
+      supabase.from("cautela_itens").insert([{ cautela_id: id, material_id, estado_na_cautela: material.estado }]),
+      supabase.from("materiais").update({ status: 'Cautelado' }).eq("id", material_id),
+      supabase.from("cautelas").update({
         assinatura_militar,
         assinatura_encarregado,
         conferente,
         data_cautela: new Date().toISOString()
-      })
-      .eq("id", id);
+      }).eq("id", id)
+    ]);
 
-    if (updateCautelaError) throw updateCautelaError;
+    if (itemRes.error) throw itemRes.error;
+    if (matUpdateRes.error) throw matUpdateRes.error;
+    if (cautelaUpdateRes.error) throw cautelaUpdateRes.error;
 
     res.json({ success: true });
   } catch (e: any) {
@@ -680,37 +674,32 @@ app.delete("/api/cautelas/:id", async (req, res) => {
   }
 });
 
-// Dashboard Stats
+// Dashboard Stats (Executado 100% em paralelo)
 app.get("/api/stats", async (req, res) => {
   try {
-    const { count: militares } = await supabase.from("militares").select("*", { count: 'exact', head: true });
-    const { count: materiais } = await supabase.from("materiais").select("*", { count: 'exact', head: true });
-    const { count: cautelasAtivas } = await supabase.from("cautelas").select("*", { count: 'exact', head: true }).eq("status", "Ativa");
-    const { count: emManutencao } = await supabase.from("materiais").select("*", { count: 'exact', head: true }).eq("status", "Manutenção");
-
-    // Overdue = deadline strictly before today
-    // To handle Vercel timezone (UTC), we must calculate the start of today in Brazil (UTC-3).
     const now = new Date();
-    // Shift current UTC time by -3 hours to get Brazil local time
     const brazilTime = new Date(now.getTime() - 3 * 60 * 60 * 1000);
-    // Zero out the hours in Brazil time (which is conceptually UTC in this shifted object)
     brazilTime.setUTCHours(0, 0, 0, 0);
-    // Now shift it back to True UTC to get the exact start of the day in UTC
     const startOfTodayInUTC = new Date(brazilTime.getTime() + 3 * 60 * 60 * 1000);
 
-    const { count: atrasados } = await supabase
-      .from("cautelas")
-      .select("*", { count: 'exact', head: true })
-      .eq("status", "Ativa")
-      .eq("tipo", "Temporária")
-      .lt("data_devolucao", startOfTodayInUTC.toISOString());
+    const [militaresRes, materiaisRes, cautelasAtivasRes, emManutencaoRes, atrasadosRes] = await Promise.all([
+      supabase.from("militares").select("*", { count: 'exact', head: true }),
+      supabase.from("materiais").select("*", { count: 'exact', head: true }),
+      supabase.from("cautelas").select("*", { count: 'exact', head: true }).eq("status", "Ativa"),
+      supabase.from("materiais").select("*", { count: 'exact', head: true }).eq("status", "Manutenção"),
+      supabase.from("cautelas")
+        .select("*", { count: 'exact', head: true })
+        .eq("status", "Ativa")
+        .eq("tipo", "Temporária")
+        .lt("data_devolucao", startOfTodayInUTC.toISOString())
+    ]);
 
     res.json({
-      militares: militares || 0,
-      materiais: materiais || 0,
-      cautelasAtivas: cautelasAtivas || 0,
-      emManutencao: emManutencao || 0,
-      atrasados: atrasados || 0
+      militares: militaresRes.count || 0,
+      materiais: materiaisRes.count || 0,
+      cautelasAtivas: cautelasAtivasRes.count || 0,
+      emManutencao: emManutencaoRes.count || 0,
+      atrasados: atrasadosRes.count || 0
     });
   } catch (e: any) {
     res.status(500).json({ error: e.message });

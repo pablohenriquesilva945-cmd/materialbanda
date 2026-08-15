@@ -15,23 +15,30 @@ const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isS
         type="button"
         onClick={() => onToggle(m.id)}
         className={cn(
-            "w-full text-left px-4 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-4",
+            "w-full text-left px-3.5 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-3",
             isSelected
-                ? "bg-amber-50 border-amber-500 shadow-sm"
+                ? "bg-amber-50/80 border-amber-600 shadow-2xs"
                 : "hover:bg-slate-50 border-transparent"
         )}
     >
-        <div className="flex flex-col">
-            <span className={cn(
-                "text-[13px] font-bold transition-colors",
-                isSelected ? "text-amber-800" : "text-slate-700"
-            )}>{m.nome}</span>
-            <span className="text-[9px] text-slate-400 uppercase font-medium">BMP: {m.bmp}</span>
+        <div className="flex flex-col pr-2">
+            <div className="flex items-center gap-1.5 flex-wrap">
+                <span className={cn(
+                    "text-xs font-semibold transition-colors",
+                    isSelected ? "text-amber-900" : "text-slate-800"
+                )}>{m.nome}</span>
+                {m.estado === 'Manutenção' && (
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-300">
+                        Manutenção
+                    </span>
+                )}
+            </div>
+            <span className="text-[10px] text-slate-500 font-mono">BMP: {m.bmp}</span>
         </div>
         <div className={cn(
-            "w-5 h-5 rounded border flex items-center justify-center transition-all",
+            "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all",
             isSelected
-                ? "bg-amber-500 border-amber-600 text-white"
+                ? "bg-amber-600 border-amber-600 text-white"
                 : "bg-white border-slate-300"
         )}>
             {isSelected && <CheckCircle className="w-3 h-3" />}
@@ -50,104 +57,108 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onAdicionarItem
     const isOverdue = listTab === 'Ativa' && c.data_devolucao && (() => {
         const prazo = new Date(c.data_devolucao!.replace(' ', 'T'));
         const hoje = new Date();
-        // Only overdue if the deadline date is strictly before today (not same day)
         prazo.setHours(0, 0, 0, 0);
         hoje.setHours(0, 0, 0, 0);
         return prazo < hoje;
     })();
 
     return (
-        <tr className={cn("hover:bg-slate-50/50 transition-colors", isOverdue && "bg-red-50 hover:bg-red-100/50 border-l-4 border-l-red-500")}>
-            <td className="px-6 py-4">
+        <tr className={cn("hover:bg-slate-50/80 transition-colors", isOverdue && "bg-red-50/60 hover:bg-red-100/60 border-l-3 border-l-red-600")}>
+            <td className="px-5 py-3.5">
                 <div className="flex flex-col">
                     <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold">{c.militar_nome}</span>
+                        <span className="text-sm font-semibold text-slate-900">{c.militar_nome}</span>
                         {isOverdue && (
-                            <span className="flex items-center gap-1 bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded shadow-sm animate-pulse ring-2 ring-red-200">
+                            <span className="flex items-center gap-1 bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.2 rounded shadow-2xs">
                                 <AlertTriangle className="w-3 h-3" />
-                                ATRASADA
+                                VENCIDA
                             </span>
                         )}
                     </div>
-                    <span className="text-[10px] text-slate-400 uppercase">{c.militar_posto}</span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[11px] text-slate-500 font-medium">{c.militar_posto}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">SARAM: {c.militar_saram}</span>
+                    </div>
                 </div>
             </td>
-            <td className="px-6 py-4">
-                <div className="flex flex-wrap gap-1 max-w-[200px]">
+            <td className="px-5 py-3.5">
+                <div className="flex flex-wrap gap-1 max-w-[240px]">
                     {c.itens.map(item => (
-                        <span key={item.id} className="bg-slate-100 text-[10px] font-medium px-2 py-0.5 rounded border border-slate-200">
+                        <span key={item.id} className="bg-slate-100 text-slate-700 text-[11px] font-medium px-2 py-0.5 rounded border border-slate-200">
                             {item.nome}
                         </span>
                     ))}
                 </div>
             </td>
-            <td className="px-6 py-4">
+            <td className="px-5 py-3.5">
                 <div className="flex flex-col">
                     <div className="flex items-center gap-1 text-slate-700">
-                        <Calendar className="w-3 h-3 text-slate-400" />
-                        <span className={cn("text-sm font-semibold", isOverdue && "text-red-700 font-bold")}>
-                            {listTab === 'Ativa' ? 'Prazo: ' : 'Devolvido em: '}
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        <span className={cn("text-xs font-semibold", isOverdue ? "text-red-700 font-bold" : "text-slate-800")}>
+                            {listTab === 'Ativa' ? 'Devolução: ' : 'Devolvido: '}
                             {listTab === 'Ativa'
                                 ? (c.data_devolucao ? format(new Date(c.data_devolucao.replace(' ', 'T')), 'dd/MM/yyyy') : 'Não definido')
                                 : (c.data_baixa ? format(new Date(c.data_baixa.replace(' ', 'T')), 'dd/MM/yyyy HH:mm') : 'N/A')}
                         </span>
                     </div>
-                    <span className="text-[10px] text-slate-400">
-                        Data Retirada: {format(new Date(c.data_cautela), 'dd/MM/yyyy HH:mm')}
+                    <span className="text-[10px] text-slate-400 font-mono">
+                        Retirada: {format(new Date(c.data_cautela), 'dd/MM/yyyy HH:mm')}
                     </span>
                 </div>
             </td>
-            <td className="px-6 py-4 text-right space-x-2">
-                <button
-                    onClick={() => onPreview(c)}
-                    className="p-2 text-slate-400 hover:text-primary transition-colors"
-                    title="Visualizar Termo"
-                >
-                    <Search className="w-4 h-4" />
-                </button>
-                <button
-                    onClick={async () => {
-                        if (c.status === 'Ativa') {
-                            await downloadTermoCautela(c);
-                        } else {
-                            await downloadTermoBaixa(c);
-                        }
-                    }}
-                    className="p-2 text-slate-400 hover:text-primary transition-colors"
-                    title="Baixar Termo"
-                >
-                    <Download className="w-4 h-4" />
-                </button>
-                {listTab === 'Ativa' && (
-                    <div className="inline-flex gap-2">
-                        <button
-                            onClick={() => onAdicionarItem(c)}
-                            className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1"
-                            title="Adicionar Item"
-                        >
-                            <Plus className="w-3 h-3" />
-                            Adicionar
-                        </button>
-                        <button
-                            onClick={() => onBaixa(c)}
-                            className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
-                        >
-                            Dar Baixa
-                        </button>
-                    </div>
-                )}
-                {listTab === 'Finalizada' && (
-                    <div className="flex items-center justify-end gap-2">
-                        <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">Devolvido</span>
-                        <button
-                            onClick={() => onDelete(c.id)}
-                            className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-                            title="Excluir Registro"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
-                    </div>
-                )}
+            <td className="px-5 py-3.5 text-right">
+                <div className="flex items-center justify-end gap-1.5">
+                    <button
+                        onClick={() => onPreview(c)}
+                        className="p-1.5 text-slate-500 hover:text-[#003366] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                        title="Visualizar Termo"
+                    >
+                        <Search className="w-4 h-4" />
+                    </button>
+                    <button
+                        onClick={async () => {
+                            if (c.status === 'Ativa') {
+                                await downloadTermoCautela(c);
+                            } else {
+                                await downloadTermoBaixa(c);
+                            }
+                        }}
+                        className="p-1.5 text-slate-500 hover:text-[#003366] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+                        title="Baixar Termo PDF"
+                    >
+                        <Download className="w-4 h-4" />
+                    </button>
+                    {listTab === 'Ativa' && (
+                        <>
+                            <button
+                                onClick={() => onAdicionarItem(c)}
+                                className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-2.5 py-1 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
+                                title="Adicionar Item"
+                            >
+                                <Plus className="w-3 h-3" />
+                                <span>Adicionar</span>
+                            </button>
+                            <button
+                                onClick={() => onBaixa(c)}
+                                className="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded-md text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+                            >
+                                Dar Baixa
+                            </button>
+                        </>
+                    )}
+                    {listTab === 'Finalizada' && (
+                        <>
+                            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">Finalizada</span>
+                            <button
+                                onClick={() => onDelete(c.id)}
+                                className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                title="Excluir Registro"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        </>
+                    )}
+                </div>
             </td>
         </tr>
     );

@@ -15,23 +15,30 @@ const MaterialItem = React.memo(({ m, isSelected, onToggle }: { m: Material, isS
     type="button"
     onClick={() => onToggle(m.id)}
     className={cn(
-      "w-full text-left px-4 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-4",
+      "w-full text-left px-3.5 py-2.5 cursor-pointer flex items-center justify-between group transition-all border-l-3",
       isSelected
-        ? "bg-emerald-50 border-emerald-500 shadow-sm"
+        ? "bg-blue-50/80 border-[#003366]"
         : "hover:bg-slate-50 border-transparent"
     )}
   >
-    <div className="flex flex-col">
-      <span className={cn(
-        "text-[13px] font-bold transition-colors",
-        isSelected ? "text-emerald-800" : "text-slate-700"
-      )}>{m.nome}</span>
-      <span className="text-[9px] text-slate-400 uppercase font-medium">BMP: {m.bmp}</span>
+    <div className="flex flex-col pr-2">
+      <div className="flex items-center gap-1.5 flex-wrap">
+        <span className={cn(
+          "text-xs font-semibold transition-colors",
+          isSelected ? "text-[#003366]" : "text-slate-800"
+        )}>{m.nome}</span>
+        {m.estado === 'Manutenção' && (
+          <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-amber-50 text-amber-700 border border-amber-200">
+            Manutenção
+          </span>
+        )}
+      </div>
+      <span className="text-[10px] text-slate-500 font-mono">BMP: {m.bmp}</span>
     </div>
     <div className={cn(
-      "w-5 h-5 rounded border flex items-center justify-center transition-all",
+      "w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all",
       isSelected
-        ? "bg-emerald-500 border-emerald-600 text-white"
+        ? "bg-[#003366] border-[#003366] text-white"
         : "bg-white border-slate-300"
     )}>
       {isSelected && <CheckCircle className="w-3 h-3" />}
@@ -47,91 +54,88 @@ const CautelaRow = React.memo(({ c, listTab, onPreview, onBaixa, onAdicionarItem
   onAdicionarItem: (c: Cautela) => void,
   onDelete: (id: number) => void
 }) => (
-  <tr className="hover:bg-slate-50/50 transition-colors">
-    <td className="px-6 py-4">
+  <tr className="hover:bg-slate-50/80 transition-colors">
+    <td className="px-5 py-3.5">
       <div className="flex flex-col">
-        <span className="text-sm font-bold">{c.militar_nome}</span>
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-slate-400 uppercase">{c.militar_posto}</span>
-          <span className={cn(
-            "text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-tighter",
-            c.tipo === 'Temporária' ? "bg-amber-100 text-amber-700" : "bg-blue-100 text-blue-700"
-          )}>
-            {c.tipo}
-          </span>
+        <span className="text-sm font-semibold text-slate-900">{c.militar_nome}</span>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <span className="text-[11px] text-slate-500 font-medium">{c.militar_posto}</span>
+          <span className="text-[10px] text-slate-400 font-mono">SARAM: {c.militar_saram}</span>
         </div>
       </div>
     </td>
-    <td className="px-6 py-4">
-      <div className="flex flex-wrap gap-1 max-w-[200px]">
+    <td className="px-5 py-3.5">
+      <div className="flex flex-wrap gap-1 max-w-[240px]">
         {c.itens.map(item => (
-          <span key={item.id} className="bg-slate-100 text-[10px] font-medium px-2 py-0.5 rounded border border-slate-200">
+          <span key={item.id} className="bg-slate-100 text-slate-700 text-[11px] font-medium px-2 py-0.5 rounded border border-slate-200">
             {item.nome}
           </span>
         ))}
       </div>
     </td>
-    <td className="px-6 py-4">
+    <td className="px-5 py-3.5">
       <div className="flex flex-col">
-        <span className="text-sm font-medium">
+        <span className="text-xs font-semibold text-slate-800">
           {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'dd/MM/yyyy')}
         </span>
-        <span className="text-[10px] text-slate-400">
+        <span className="text-[10px] text-slate-400 font-mono">
           {format(new Date(listTab === 'Ativa' ? c.data_cautela : (c.data_baixa || c.data_cautela)), 'HH:mm')}
         </span>
       </div>
     </td>
-    <td className="px-6 py-4 text-right space-x-2">
-      <button
-        onClick={() => onPreview(c)}
-        className="p-2 text-slate-400 hover:text-primary transition-colors"
-        title="Visualizar Termo"
-      >
-        <Search className="w-4 h-4" />
-      </button>
-      <button
-        onClick={async () => {
-          if (c.status === 'Ativa') {
-            await downloadTermoCautela(c);
-          } else {
-            await downloadTermoBaixa(c);
-          }
-        }}
-        className="p-2 text-slate-400 hover:text-primary transition-colors"
-        title="Baixar Termo"
-      >
-        <Download className="w-4 h-4" />
-      </button>
-      {listTab === 'Ativa' && (
-        <div className="inline-flex gap-2">
-          <button
-            onClick={() => onAdicionarItem(c)}
-            className="bg-white border border-emerald-500 text-emerald-600 hover:bg-emerald-500 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1"
-            title="Adicionar Item"
-          >
-            <Plus className="w-3 h-3" />
-            Adicionar
-          </button>
-          <button
-            onClick={() => onBaixa(c)}
-            className="bg-white border border-primary text-primary hover:bg-primary hover:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition-all"
-          >
-            Dar Baixa
-          </button>
-        </div>
-      )}
-      {listTab === 'Finalizada' && (
-        <div className="flex items-center justify-end gap-2">
-          <span className="text-[10px] font-bold text-emerald-600 uppercase bg-emerald-50 px-2 py-1 rounded">Finalizada</span>
-          <button
-            onClick={() => onDelete(c.id)}
-            className="p-2 text-slate-300 hover:text-red-500 transition-colors"
-            title="Excluir Registro"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      )}
+    <td className="px-5 py-3.5 text-right">
+      <div className="flex items-center justify-end gap-1.5">
+        <button
+          onClick={() => onPreview(c)}
+          className="p-1.5 text-slate-500 hover:text-[#003366] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+          title="Visualizar Termo"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+        <button
+          onClick={async () => {
+            if (c.status === 'Ativa') {
+              await downloadTermoCautela(c);
+            } else {
+              await downloadTermoBaixa(c);
+            }
+          }}
+          className="p-1.5 text-slate-500 hover:text-[#003366] hover:bg-slate-100 rounded-md transition-colors cursor-pointer"
+          title="Baixar Termo PDF"
+        >
+          <Download className="w-4 h-4" />
+        </button>
+        {listTab === 'Ativa' && (
+          <>
+            <button
+              onClick={() => onAdicionarItem(c)}
+              className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-2.5 py-1 rounded-md text-xs font-semibold transition-all inline-flex items-center gap-1 cursor-pointer"
+              title="Adicionar Item"
+            >
+              <Plus className="w-3 h-3" />
+              <span>Adicionar</span>
+            </button>
+            <button
+              onClick={() => onBaixa(c)}
+              className="bg-[#003366] hover:bg-[#002244] text-white px-3 py-1 rounded-md text-xs font-semibold shadow-2xs transition-all cursor-pointer"
+            >
+              Dar Baixa
+            </button>
+          </>
+        )}
+        {listTab === 'Finalizada' && (
+          <>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">Finalizada</span>
+            <button
+              onClick={() => onDelete(c.id)}
+              className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+              title="Excluir Registro"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </>
+        )}
+      </div>
     </td>
   </tr>
 ));
@@ -741,217 +745,218 @@ const CautionArea: React.FC = () => {
           </div>
         </div>
       )}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Form */}
         <section className="lg:col-span-5 space-y-4">
-          <div className="flex items-center gap-2 mb-2 px-1">
-            <Handshake className="w-5 h-5 text-primary" />
-            <h3 className="text-xl font-bold">Nova Cautela</h3>
-          </div>
-          <div className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 shadow-sm">
-            <form onSubmit={handleConfirmCautela} className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700 ml-1">Militar Responsável</label>
-                <div className="relative mb-2">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={militarSearch}
-                    onChange={e => setMilitarSearch(e.target.value)}
-                    placeholder="Filtrar militares..."
-                    className="w-full pl-10 pr-10 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white outline-none transition-all"
-                  />
-                  {militarSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setMilitarSearch('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-                <select
-                  value={selectedMilitar}
-                  onChange={e => setSelectedMilitar(e.target.value)}
-                  className={cn(
-                    "w-full bg-slate-50/50 border rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none appearance-none truncate",
-                    selectedMilitar ? "border-primary ring-2 ring-primary/5 font-bold text-primary" : "border-slate-300 text-slate-500"
-                  )}
-                  required
-                >
-                  <option value="">Selecione o militar...</option>
-                  {filteredMilitares.map(m => (
-                    <option key={m.id} value={m.id}>{m.nome} ({m.posto})</option>
-                  ))}
-                </select>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+            <div className="bg-slate-50/80 px-5 py-3.5 border-b border-slate-200 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Handshake className="w-4 h-4 text-[#003366]" />
+                <h3 className="font-bold text-slate-800 text-sm">Nova Cautela Permanente</h3>
               </div>
-
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between ml-1">
-                  <label className="text-sm font-bold text-slate-700">Materiais Disponíveis</label>
-                  {selectedMateriais.length > 0 && (
-                    <span className="bg-emerald-600 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
-                      {selectedMateriais.length}
-                    </span>
-                  )}
-                </div>
-                <div className="relative mb-2">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                  <input
-                    type="text"
-                    value={materialSearch}
-                    onChange={e => setMaterialSearch(e.target.value)}
-                    placeholder="Filtrar ou escanear..."
-                    className="w-full pl-10 pr-20 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs focus:bg-white outline-none transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsScanning(true)}
-                    className="absolute right-10 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary p-1 bg-slate-100 rounded-md"
-                    title="Escanear QR Code"
-                  >
-                    <QrCode className="w-4 h-4" />
-                  </button>
-                  {materialSearch && (
-                    <button
-                      type="button"
-                      onClick={() => setMaterialSearch('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
-                </div>
-                <div className="border border-slate-200 rounded-xl overflow-hidden max-h-52 overflow-y-auto divide-y divide-slate-100 bg-slate-50/30">
-                  {filteredMateriaisDisponiveis.map(m => (
-                    <MaterialItem
-                      key={m.id}
-                      m={m}
-                      isSelected={selectedMateriais.includes(m.id)}
-                      onToggle={toggleMaterial}
+            </div>
+            <div className="p-5">
+              <form onSubmit={handleConfirmCautela} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Militar Responsável</label>
+                  <div className="relative mb-2">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={militarSearch}
+                      onChange={e => setMilitarSearch(e.target.value)}
+                      placeholder="Filtrar militares por nome ou SARAM..."
+                      className="w-full pl-8 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] outline-none transition-all font-medium"
                     />
-                  ))}
-                  {filteredMateriaisDisponiveis.length === 0 && (
-                    <div className="p-4 text-center text-slate-400 text-xs italic">Nenhum material.</div>
-                  )}
-                </div>
-                {selectedMateriais.length > 0 && (
-                  <div className="space-y-2 mt-4 pt-4 border-t border-slate-200 animate-in fade-in duration-200">
-                    <div className="flex justify-between items-center px-1">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Itens Selecionados ({selectedMateriais.length})</label>
+                    {militarSearch && (
                       <button
                         type="button"
-                        onClick={() => setSelectedMateriais([])}
-                        className="text-[10px] font-bold text-red-500 hover:text-red-700 uppercase cursor-pointer"
+                        onClick={() => setMilitarSearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
-                        Desmarcar Todos
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                    </div>
-                    <div className="border border-slate-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto divide-y divide-slate-100 bg-slate-50">
-                      {selectedMateriais.map(id => {
-                        const m = materiais.find(item => item.id === id);
-                        if (!m) return null;
-                        return (
-                          <div key={m.id} className="flex items-center justify-between px-3 py-2 hover:bg-slate-100/50 transition-colors">
-                            <div className="flex flex-col">
-                              <span className="text-xs font-bold text-slate-700">{m.nome}</span>
-                              <span className="text-[10px] text-slate-400">BMP: {m.bmp} {m.marca && `| ${m.marca}`}</span>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => toggleMaterial(m.id)}
-                              className="text-slate-400 hover:text-red-500 p-1 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                              title="Remover material"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
+                  <select
+                    value={selectedMilitar}
+                    onChange={e => setSelectedMilitar(e.target.value)}
+                    className={cn(
+                      "w-full bg-slate-50 border rounded-lg focus:bg-white focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all text-sm py-2.5 px-3 outline-none appearance-none truncate font-medium cursor-pointer",
+                      selectedMilitar ? "border-[#003366] text-[#003366] font-bold" : "border-slate-300 text-slate-600"
+                    )}
+                    required
+                  >
+                    <option value="">Selecione o militar recebedor...</option>
+                    {filteredMilitares.map(m => (
+                      <option key={m.id} value={m.id}>{m.posto} {m.nome} (SARAM: {m.saram})</option>
+                    ))}
+                  </select>
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700 ml-1">Observações</label>
-                <textarea
-                  value={observacoes}
-                  onChange={e => setObservacoes(e.target.value)}
-                  className="w-full bg-slate-50/50 border border-slate-300 rounded-xl focus:bg-white focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-sm py-2.5 px-4 outline-none resize-none"
-                  placeholder="Ex: Missão externa, ensaio, etc."
-                  rows={2}
-                />
-              </div>
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Materiais Disponíveis</label>
+                    {selectedMateriais.length > 0 && (
+                      <span className="bg-[#003366] text-white text-[10px] font-bold px-2 py-0.2 rounded-full">
+                        {selectedMateriais.length} selecionado(s)
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative mb-2">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={materialSearch}
+                      onChange={e => setMaterialSearch(e.target.value)}
+                      placeholder="Filtrar por nome, BMP ou escanear..."
+                      className="w-full pl-8 pr-16 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs focus:bg-white focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] outline-none transition-all font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsScanning(true)}
+                      className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-500 hover:text-[#003366] p-1 rounded transition-colors cursor-pointer"
+                      title="Escanear QR Code"
+                    >
+                      <QrCode className="w-3.5 h-3.5" />
+                    </button>
+                    {materialSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setMaterialSearch('')}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="border border-slate-200 rounded-lg overflow-hidden max-h-48 overflow-y-auto divide-y divide-slate-100 bg-white">
+                    {filteredMateriaisDisponiveis.map(m => (
+                      <MaterialItem
+                        key={m.id}
+                        m={m}
+                        isSelected={selectedMateriais.includes(m.id)}
+                        onToggle={toggleMaterial}
+                      />
+                    ))}
+                    {filteredMateriaisDisponiveis.length === 0 && (
+                      <div className="p-4 text-center text-slate-400 text-xs font-medium">Nenhum material disponível no filtro.</div>
+                    )}
+                  </div>
+                  {selectedMateriais.length > 0 && (
+                    <div className="space-y-2 mt-3 pt-3 border-t border-slate-200 animate-in fade-in">
+                      <div className="flex justify-between items-center px-1">
+                        <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Itens Selecionados ({selectedMateriais.length})</label>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedMateriais([])}
+                          className="text-[10px] font-bold text-red-600 hover:text-red-800 uppercase cursor-pointer"
+                        >
+                          Desmarcar Todos
+                        </button>
+                      </div>
+                      <div className="border border-slate-200 rounded-lg overflow-hidden max-h-40 overflow-y-auto divide-y divide-slate-100 bg-slate-50">
+                        {selectedMateriais.map(id => {
+                          const m = materiais.find(item => item.id === id);
+                          if (!m) return null;
+                          return (
+                            <div key={m.id} className="flex items-center justify-between px-3 py-2 hover:bg-slate-100/60 transition-colors">
+                              <div className="flex flex-col">
+                                <span className="text-xs font-bold text-slate-800">{m.nome}</span>
+                                <span className="text-[10px] text-slate-500 font-mono">BMP: {m.bmp} {m.marca && `| ${m.marca}`}</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => toggleMaterial(m.id)}
+                                className="text-slate-400 hover:text-red-600 p-1 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                                title="Remover material"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
-              <button
-                type="submit"
-                disabled={!selectedMilitar || selectedMateriais.length === 0}
-                className="w-full bg-primary hover:opacity-90 disabled:bg-slate-300 text-white font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-primary/10 transition-all text-sm"
-              >
-                <CheckCircle className="w-5 h-5" />
-                Confirmar Cautela
-              </button>
-            </form>
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Observações (Opcional)</label>
+                  <textarea
+                    value={observacoes}
+                    onChange={e => setObservacoes(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all text-xs py-2 px-3 outline-none resize-none font-medium"
+                    placeholder="Ex: Utilização em ensaios e apresentações oficiais..."
+                    rows={2}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={!selectedMilitar || selectedMateriais.length === 0}
+                  className="w-full bg-[#003366] hover:bg-[#002244] disabled:bg-slate-300 text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 shadow-xs transition-all text-sm cursor-pointer"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  <span>Prosseguir com Cautela</span>
+                </button>
+              </form>
+            </div>
           </div>
         </section>
 
         {/* List Section */}
         <section className="lg:col-span-7 space-y-4">
-          <div className="flex flex-col gap-4 mb-2">
-            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar pb-1">
-              <button
-                onClick={() => setListTab('Ativa')}
-                className={cn(
-                  "flex items-center gap-2 pb-2 border-b-2 transition-all whitespace-nowrap",
-                  listTab === 'Ativa' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-                )}
-              >
-                <History className="w-5 h-5" />
-                <h3 className="text-lg font-bold">Ativas</h3>
-              </button>
-              <button
-                onClick={() => setListTab('Finalizada')}
-                className={cn(
-                  "flex items-center gap-2 pb-2 border-b-2 transition-all whitespace-nowrap",
-                  listTab === 'Finalizada' ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"
-                )}
-              >
-                <CheckCircle className="w-5 h-5" />
-                <h3 className="text-lg font-bold">Histórico</h3>
-              </button>
-            </div>
+          <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setListTab('Ativa')}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                    listTab === 'Ativa'
+                      ? "bg-[#003366] text-white shadow-2xs"
+                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  )}
+                >
+                  Cautelas Ativas
+                </button>
+                <button
+                  onClick={() => setListTab('Finalizada')}
+                  className={cn(
+                    "px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer",
+                    listTab === 'Finalizada'
+                      ? "bg-[#003366] text-white shadow-2xs"
+                      : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  )}
+                >
+                  Histórico de Baixas
+                </button>
+              </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <div className="relative w-full sm:w-[220px]">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
                   value={recordSearch}
                   onChange={e => setRecordSearch(e.target.value)}
-                  placeholder="Buscar registros..."
-                  className="pl-10 pr-4 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-primary/20 outline-none transition-all w-full"
+                  placeholder="Buscar militar ou material..."
+                  className="pl-8 pr-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] outline-none transition-all w-full font-medium"
                 />
               </div>
-              <span className="bg-primary/5 text-primary text-[10px] font-black px-3 py-1.5 rounded-lg border border-primary/10 text-center uppercase whitespace-nowrap">
-                {filteredCautelas.length} registros
-              </span>
             </div>
-          </div>
 
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             {/* Desktop Table */}
             <div className="overflow-x-auto hidden md:block">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200">
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Militar</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Itens</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest">
+                  <tr className="bg-slate-100/75 border-b border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider">
+                    <th className="px-5 py-3">Militar</th>
+                    <th className="px-5 py-3">Itens Cautelados</th>
+                    <th className="px-5 py-3">
                       {listTab === 'Ativa' ? 'Data Cautela' : 'Data Baixa'}
                     </th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-widest text-right">Ações</th>
+                    <th className="px-5 py-3 text-right">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

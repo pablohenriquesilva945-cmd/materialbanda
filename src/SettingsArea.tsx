@@ -177,89 +177,94 @@ const SettingsArea: React.FC = () => {
             )}
 
             {/* Configuração de Nomes das Assinaturas */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <Users className="text-primary w-6 h-6" />
-                    Identificação das Assinaturas
-                </h2>
-                <p className="text-slate-600 mb-6 text-sm">
-                    Atualize os nomes dos responsáveis que aparecerão impressos nos Termos de Cautela e de Devolução (abaixo das linhas de assinatura).
-                </p>
+            {/* Identificação das Assinaturas */}
+            <div className="bg-white p-5 sm:p-6 rounded-xl shadow-2xs border border-slate-200 space-y-4">
+                <div>
+                    <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <Users className="text-[#003366] w-4 h-4" />
+                        Identificação dos Responsáveis nos Termos
+                    </h2>
+                    <p className="text-slate-500 text-xs mt-0.5 font-medium">
+                        Configure os postos e nomes que sairão impressos sob os campos de assinatura dos relatórios e termos oficiais.
+                    </p>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 block">
-                            Nome/Posto do Conferente (Sessão Ativa)
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+                            Conferente Ativo (Sessão Atual)
                         </label>
                         <input
                             type="text"
                             value={user?.nome_conferente || conferenteName}
                             disabled
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-400 font-bold text-sm uppercase cursor-not-allowed"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-slate-100/70 text-slate-600 font-bold text-sm uppercase cursor-not-allowed font-mono"
                         />
-                        <span className="text-xs text-slate-400">O conferente é definido pelo login ativo.</span>
+                        <span className="text-[11px] text-slate-400 font-medium">Definido automaticamente pelo usuário autenticado.</span>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 block">
-                            Nome/Posto do Chefe da Banda
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
+                            Nome / Posto do Chefe da Banda
                         </label>
                         <input
                             type="text"
                             value={commanderName}
                             onChange={(e) => setCommanderName(e.target.value)}
                             placeholder="Ex: CAP VALDECI"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm uppercase"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 font-semibold focus:outline-none focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all text-sm uppercase"
                         />
-                        <span className="text-xs text-slate-400">Nome que constará sob a assinatura central.</span>
+                        <span className="text-[11px] text-slate-400 font-medium">Nome exibido na assinatura central de autorização.</span>
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-6 border-t border-slate-100 mt-6">
+                <div className="flex justify-end pt-3 border-t border-slate-100">
                     <button
                         onClick={handleSaveNames}
                         disabled={isSavingNames}
-                        className="bg-primary hover:opacity-90 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+                        className="bg-[#003366] hover:bg-[#002244] disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-xs text-xs cursor-pointer"
                     >
-                        <Save className="w-5 h-5" />
-                        {isSavingNames ? 'Salvando...' : 'Salvar Identificações'}
+                        <Save className="w-4 h-4" />
+                        <span>{isSavingNames ? 'Salvando...' : 'Salvar Identificações'}</span>
                     </button>
                 </div>
             </div>
 
             {/* Configuração de Assinatura do Chefe da Banda */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <PenTool className="text-primary w-6 h-6" />
-                    Assinatura do Chefe da Banda
-                </h2>
-                <p className="text-slate-600 mb-6 text-sm">
-                    Cadastre a assinatura digitalizada do Chefe da Banda de Música. Esta assinatura será inserida automaticamente ao gerar os Termos de Cautela e de Devolução do sistema.
-                </p>
+            <div className="bg-white p-5 sm:p-6 rounded-xl shadow-2xs border border-slate-200 space-y-4">
+                <div>
+                    <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <PenTool className="text-[#003366] w-4 h-4" />
+                        Assinatura Digitalizada do Chefe da Banda
+                    </h2>
+                    <p className="text-slate-500 text-xs mt-0.5 font-medium">
+                        Insira a rubrica/assinatura oficial para inserção automática nos termos impressos e PDFs gerados.
+                    </p>
+                </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                        <label className="text-sm font-bold text-slate-700">Assinatura Digital</label>
+                        <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Campo de Rubrica / Escrita</label>
                         {!signature && (
                             <button
                                 onClick={handleClear}
-                                className="text-xs font-bold text-red-500 hover:text-red-700 flex items-center gap-1 uppercase"
+                                className="text-xs font-bold text-red-600 hover:text-red-800 flex items-center gap-1 uppercase cursor-pointer"
                             >
-                                <Trash2 className="w-3 h-3" /> Limpar Escrita
+                                <Trash2 className="w-3 h-3" /> Limpar
                             </button>
                         )}
                     </div>
 
-                    <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-xl overflow-hidden min-h-[200px] flex flex-col items-center justify-center relative touch-none">
+                    <div className="bg-slate-50 border-2 border-dashed border-slate-300 rounded-lg overflow-hidden min-h-[180px] flex flex-col items-center justify-center relative touch-none">
                         {signature ? (
-                            <div className="relative group w-full flex items-center justify-center p-8 bg-white border border-slate-200 rounded-xl">
-                                <img src={signature} alt="Assinatura Salva" className="max-h-32 object-contain" />
-                                <div className="absolute inset-0 bg-slate-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
+                            <div className="relative group w-full flex items-center justify-center p-6 bg-white rounded-lg">
+                                <img src={signature} alt="Assinatura Salva" className="max-h-28 object-contain" />
+                                <div className="absolute inset-0 bg-slate-900/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                     <button
                                         onClick={handleRemoveExisting}
-                                        className="bg-white text-slate-800 font-bold text-sm px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                        className="bg-white text-slate-800 font-bold text-xs px-3.5 py-2 rounded-md shadow-md flex items-center gap-1.5 hover:bg-red-50 hover:text-red-600 transition-colors cursor-pointer"
                                     >
-                                        <Trash2 className="w-4 h-4" /> Remarcar Assinatura
+                                        <Trash2 className="w-3.5 h-3.5" /> Assinar Novamente
                                     </button>
                                 </div>
                             </div>
@@ -268,90 +273,92 @@ const SettingsArea: React.FC = () => {
                                 ref={sigRef}
                                 penColor="black"
                                 canvasProps={{
-                                    className: "w-full h-[200px] cursor-crosshair bg-white"
+                                    className: "w-full h-[180px] cursor-crosshair bg-white"
                                 }}
                             />
                         )}
 
                         {!signature && (
-                            <div className="absolute bottom-4 text-xs font-medium tracking-wide text-slate-400 pointer-events-none uppercase">
-                                Assine no espaço acima
+                            <div className="absolute bottom-3 text-[11px] font-medium tracking-wide text-slate-400 pointer-events-none uppercase">
+                                Desenhe a assinatura no quadro branco
                             </div>
                         )}
                     </div>
 
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-2">
                         <button
                             onClick={handleSave}
                             disabled={isSaving || !!signature}
-                            className="bg-primary hover:opacity-90 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+                            className="bg-[#003366] hover:bg-[#002244] disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-xs text-xs cursor-pointer"
                         >
-                            {signature ? <CheckCircle className="w-5 h-5" /> : <Save className="w-5 h-5" />}
-                            {signature ? 'Assinatura Adicionada' : (isSaving ? 'Salvando...' : 'Salvar Assinatura')}
+                            {signature ? <CheckCircle className="w-4 h-4" /> : <Save className="w-4 h-4" />}
+                            <span>{signature ? 'Assinatura Registrada' : (isSaving ? 'Salvando...' : 'Salvar Assinatura')}</span>
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Alterar Senha do Conferente */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h2 className="text-xl font-bold text-slate-800 mb-2 flex items-center gap-2">
-                    <UserCheck className="text-primary w-6 h-6" />
-                    Segurança / Alterar Senha
-                </h2>
-                <p className="text-slate-600 mb-6 text-sm">
-                    Altere a senha de acesso da conta de conferente ativa (<strong className="font-bold text-slate-800">{user?.nome_conferente}</strong>).
-                </p>
+            <div className="bg-white p-5 sm:p-6 rounded-xl shadow-2xs border border-slate-200 space-y-4">
+                <div>
+                    <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                        <UserCheck className="text-[#003366] w-4 h-4" />
+                        Segurança da Conta / Alterar Senha
+                    </h2>
+                    <p className="text-slate-500 text-xs mt-0.5 font-medium">
+                        Atualize a senha de acesso da conta em uso (<strong className="font-bold text-slate-800">{user?.nome_conferente || user?.username}</strong>).
+                    </p>
+                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 block">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
                             Senha Atual
                         </label>
                         <input
                             type="password"
                             value={oldUserPassword}
                             onChange={(e) => setOldUserPassword(e.target.value)}
-                            placeholder="Sua senha atual"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                            placeholder="Digite a senha atual"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all text-sm"
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 block">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
                             Nova Senha
                         </label>
                         <input
                             type="password"
                             value={newUserPassword}
                             onChange={(e) => setNewUserPassword(e.target.value)}
-                            placeholder="Sua nova senha"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                            placeholder="Digite a nova senha"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all text-sm"
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-bold text-slate-700 block">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-semibold text-slate-700 uppercase tracking-wider block">
                             Confirmar Nova Senha
                         </label>
                         <input
                             type="password"
                             value={confirmUserPassword}
                             onChange={(e) => setConfirmUserPassword(e.target.value)}
-                            placeholder="Confirme a nova senha"
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm"
+                            placeholder="Repita a nova senha"
+                            className="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 font-medium focus:outline-none focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all text-sm"
                         />
                     </div>
                 </div>
 
-                <div className="flex justify-end pt-6 border-t border-slate-100 mt-6">
+                <div className="flex justify-end pt-3 border-t border-slate-100">
                     <button
                         onClick={handleUpdateUserPassword}
                         disabled={isSavingUserPassword}
-                        className="bg-primary hover:opacity-90 disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-primary/20"
+                        className="bg-[#003366] hover:bg-[#002244] disabled:bg-slate-300 disabled:cursor-not-allowed text-white px-5 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all shadow-xs text-xs cursor-pointer"
                     >
-                        <Save className="w-5 h-5" />
-                        {isSavingUserPassword ? 'Salvando...' : 'Atualizar Senha'}
+                        <Save className="w-4 h-4" />
+                        <span>{isSavingUserPassword ? 'Salvando...' : 'Atualizar Senha'}</span>
                     </button>
                 </div>
             </div>
