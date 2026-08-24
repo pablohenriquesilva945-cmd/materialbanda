@@ -452,28 +452,50 @@ const TemporaryCautionArea: React.FC = () => {
     };
 
     const finalizeBaixa = async (pending: { cautela: Cautela, materialIds: number[] }, assinatura_militar: string, assinatura_encarregado: string) => {
-        const itens_estados = pending.cautela.itens
-            .filter(item => pending.materialIds.includes(item.material_id))
-            .map(item => ({
-                material_id: item.material_id,
-                novo_estado: item.estado_na_cautela
-            }));
+        try {
+            const itens_estados = pending.cautela.itens
+                .filter(item => pending.materialIds.includes(item.material_id))
+                .map(item => ({
+                    material_id: item.material_id,
+                    novo_estado: item.estado_na_cautela
+                }));
 
-        if (itens_estados.length === 0) return;
+            if (itens_estados.length === 0) return;
 
-        const res = await fetch(`/api/cautelas/${pending.cautela.id}/baixa`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                itens_estados,
-                assinatura_militar,
-                assinatura_encarregado,
-                conferente: user?.nome_conferente || ''
-            })
-        });
+            const res = await fetch(`/api/cautelas/${pending.cautela.id}/baixa`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    itens_estados,
+                    assinatura_militar,
+                    assinatura_encarregado,
+                    conferente: user?.nome_conferente || ''
+                })
+            });
 
-        if (res.ok) {
-            fetchData();
+            if (res.ok) {
+                const data = await res.json();
+                const devolucaoCautela = data.cautela;
+
+                setRecordSearch('');
+                setListTab('Finalizada');
+
+                if (devolucaoCautela) {
+                    setCautelas(prev => [devolucaoCautela, ...prev.filter(c => c.id !== devolucaoCautela.id)]);
+                    const url = await previewTermoBaixa(devolucaoCautela);
+                    setPreviewUrl(url.toString());
+                    setPreviewTitle(`Visualização: Termo de Devolução - ${devolucaoCautela.militar_nome}`);
+                    setCurrentCautelaForPreview(devolucaoCautela);
+                }
+
+                await fetchData();
+            } else {
+                const data = await res.json();
+                alert(data.error || 'Erro ao processar baixa');
+            }
+        } catch (err) {
+            console.error("Erro ao processar baixa:", err);
+            alert('Erro de conexão ao processar baixa.');
         }
     };
 
@@ -597,8 +619,9 @@ const TemporaryCautionArea: React.FC = () => {
         return cautelas.filter(c =>
             c.tipo === 'Temporária' &&
             c.status === listTab && (
-                c.militar_nome.toLowerCase().includes(search) ||
-                c.itens.some(item => item.nome.toLowerCase().includes(search) || item.bmp.includes(search))
+                (c.militar_nome || '').toLowerCase().includes(search) ||
+                (c.militar_saram || '').includes(search) ||
+                (c.itens || []).some(item => (item.nome || '').toLowerCase().includes(search) || (item.bmp || '').includes(search))
             )
         );
     }, [cautelas, listTab, debouncedRecordSearch]);

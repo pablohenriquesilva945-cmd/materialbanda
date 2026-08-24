@@ -52,7 +52,8 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
 
 
   if (type === 'Baixa') {
-    doc.text(`Data da Cautela: ${format(new Date(cautela.data_cautela), 'dd/MM/yyyy')}`, 25, 122);
+    const dataCautelaFormatted = cautela.data_cautela ? format(new Date(cautela.data_cautela), 'dd/MM/yyyy') : format(new Date(), 'dd/MM/yyyy');
+    doc.text(`Data da Cautela: ${dataCautelaFormatted}`, 25, 122);
   }
 
   // 2. DESCRIÇÃO DO MATERIAL
@@ -60,12 +61,12 @@ export const generateTermoDoc = async (cautela: Cautela, type: 'Cautela' | 'Baix
   doc.setFont('helvetica', 'bold');
   doc.text('2. DESCRIÇÃO DO MATERIAL', 20, section2Y);
 
-  const tableData = cautela.itens.map((item, index) => [
+  const tableData = (cautela.itens || []).map((item, index) => [
     (index + 1).toString().padStart(2, '0'),
-    item.nome,
-    item.bmp,
+    item.nome || '-',
+    item.bmp || '-',
     item.marca || '-',
-    type === 'Cautela' ? item.estado_na_cautela : item.estado
+    type === 'Cautela' ? (item.estado_na_cautela || item.estado || 'Bom') : (item.estado || item.estado_na_cautela || 'Bom')
   ]);
 
   autoTable(doc, {

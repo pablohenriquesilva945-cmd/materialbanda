@@ -599,9 +599,44 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
     const returnedItemIds = itens_estados.map((i: any) => i.material_id);
     const keptItems = cautelaAtual.itens.filter((i: any) => !returnedItemIds.includes(i.material_id));
 
+    let devolucaoCautelaId = id;
+
     if (keptItems.length > 0) {
       // Baixa parcial:
-      // 1. Remove os itens devolvidos da cautela atual
+      // 1. Cria uma nova cautela com status 'Finalizada' (Termo de Devolução) para os itens devolvidos
+      const { data: novaDevolucao, error: insertDevolucaoError } = await supabase
+        .from("cautelas")
+        .insert([{
+          militar_id: cautelaAtual.militar_id,
+          observacoes: cautelaAtual.observacoes,
+          tipo: cautelaAtual.tipo,
+          data_cautela: cautelaAtual.data_cautela,
+          data_baixa: new Date().toISOString(),
+          status: 'Finalizada',
+          assinatura_militar,
+          assinatura_encarregado,
+          conferente: conferente || cautelaAtual.conferente
+        }])
+        .select()
+        .single();
+
+      if (insertDevolucaoError) throw insertDevolucaoError;
+      devolucaoCautelaId = novaDevolucao.id;
+
+      // 2. Insere os itens devolvidos associados a esta nova cautela finalizada
+      const devolucaoItens = itens_estados.map((i: any) => ({
+        cautela_id: novaDevolucao.id,
+        material_id: i.material_id,
+        estado_na_cautela: i.novo_estado || 'Bom'
+      }));
+
+      const { error: insertItensError } = await supabase
+        .from("cautela_itens")
+        .insert(devolucaoItens);
+
+      if (insertItensError) throw insertItensError;
+
+      // 3. Remove os itens devolvidos da cautela original (que permanece ativa com os itens restantes)
       const { error: deleteError } = await supabase
         .from("cautela_itens")
         .delete()
@@ -609,19 +644,6 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
         .in("material_id", returnedItemIds);
 
       if (deleteError) throw deleteError;
-
-      // 2. Atualiza a cautela atual (que continua ativa)
-      const { error: updateCautelaError } = await supabase
-        .from("cautelas")
-        .update({
-          assinatura_militar,
-          assinatura_encarregado,
-          conferente: conferente || cautelaAtual.conferente,
-          data_cautela: new Date().toISOString()
-        })
-        .eq("id", id);
-
-      if (updateCautelaError) throw updateCautelaError;
     } else {
       // Baixa total: finaliza a cautela original
       const { error: cautelaError } = await supabase
@@ -638,7 +660,7 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
       if (cautelaError) throw cautelaError;
     }
 
-    // 3. Atualizar materiais devolvidos agrupando por estado (Batch Update)
+    // 4. Atualizar materiais devolvidos agrupando por estado (Batch Update)
     const updatesByState: Record<string, number[]> = {};
     for (const item of itens_estados) {
       const state = item.novo_estado || 'Bom';
@@ -656,7 +678,37 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
       })
     );
 
-    res.json({ success: true });
+    // 5. Buscar a cautela de devolução completa para retornar ao frontend
+    const { data: cautelaDevolvida } = await supabase
+      .from("cautelas")
+      .select(`
+        *,
+        militar:militares (nome, saram, posto),
+        itens:cautela_itens (
+          *,
+          material:materiais (nome, bmp, marca)
+        )
+      `)
+      .eq("id", devolucaoCautelaId)
+      .maybeSingle();
+
+    let formattedDevolucao = null;
+    if (cautelaDevolvida) {
+      formattedDevolucao = {
+        ...cautelaDevolvida,
+        militar_nome: cautelaDevolvida.militar?.nome,
+        militar_saram: cautelaDevolvida.militar?.saram,
+        militar_posto: cautelaDevolvida.militar?.posto,
+        itens: cautelaDevolvida.itens?.map((i: any) => ({
+          ...i,
+          nome: i.material?.nome,
+          bmp: i.material?.bmp,
+          marca: i.material?.marca
+        })) || []
+      };
+    }
+
+    res.json({ success: true, devolucao_id: devolucaoCautelaId, cautela: formattedDevolucao });
   } catch (e: any) {
     console.error("Erro ao dar baixa:", e);
     res.status(400).json({ error: e.message });
