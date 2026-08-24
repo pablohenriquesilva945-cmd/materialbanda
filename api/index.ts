@@ -717,25 +717,43 @@ app.post("/api/cautelas/:id/baixa", async (req, res) => {
 
 app.post("/api/cautelas/:id/adicionar-item", async (req, res) => {
   const { id } = req.params;
-  const { material_id, assinatura_militar, assinatura_encarregado, conferente } = req.body;
+  const { material_id, material_ids, assinatura_militar, assinatura_encarregado, conferente } = req.body;
 
   try {
-    // 1. Buscar o material
-    const { data: material, error: matFetchError } = await supabase
-      .from("materiais")
-      .select("estado, status")
-      .eq("id", material_id)
-      .single();
+    const idsToAdd: number[] = Array.isArray(material_ids) && material_ids.length > 0
+      ? material_ids
+      : (material_id ? [material_id] : []);
 
-    if (matFetchError) throw matFetchError;
-    if (material.status === 'Cautelado') {
-      return res.status(400).json({ error: "Material já está cautelado." });
+    if (idsToAdd.length === 0) {
+      return res.status(400).json({ error: "Nenhum material selecionado." });
     }
 
-    // 2. Operações em paralelo
+    // 1. Buscar os materiais
+    const { data: materiais, error: matFetchError } = await supabase
+      .from("materiais")
+      .select("id, estado, status")
+      .in("id", idsToAdd);
+
+    if (matFetchError) throw matFetchError;
+    if (!materiais || materiais.length === 0) {
+      return res.status(404).json({ error: "Materiais não encontrados." });
+    }
+
+    const jaCautelados = materiais.filter(m => m.status === 'Cautelado');
+    if (jaCautelados.length > 0) {
+      return res.status(400).json({ error: "Um ou mais materiais selecionados já estão cautelados." });
+    }
+
+    // 2. Inserir itens e atualizar materiais/cautela
+    const cautelaItensInserts = materiais.map(m => ({
+      cautela_id: id,
+      material_id: m.id,
+      estado_na_cautela: m.estado
+    }));
+
     const [itemRes, matUpdateRes, cautelaUpdateRes] = await Promise.all([
-      supabase.from("cautela_itens").insert([{ cautela_id: id, material_id, estado_na_cautela: material.estado }]),
-      supabase.from("materiais").update({ status: 'Cautelado' }).eq("id", material_id),
+      supabase.from("cautela_itens").insert(cautelaItensInserts),
+      supabase.from("materiais").update({ status: 'Cautelado' }).in("id", idsToAdd),
       supabase.from("cautelas").update({
         assinatura_militar,
         assinatura_encarregado,
