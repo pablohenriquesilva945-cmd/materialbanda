@@ -124,9 +124,9 @@ Acesse `http://localhost:5173` no seu navegador.
 
 ## 👨‍💻 Autor
 
-Desenvolvido por **[Seu Nome]**  
-- **LinkedIn:** [Seu Perfil do LinkedIn](https://www.linkedin.com/)  
-- **Portfólio / GitHub:** [Seu GitHub](https://github.com/)  
+Desenvolvido por **PABLO HENRIQUE BENEDITO SILVA CAMARGO**  
+- **LinkedIn:** [Pablo Henrique
+](www.linkedin.com/in/pablo-henrique-176984274)  
 
 ---
 
