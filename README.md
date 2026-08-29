@@ -135,20 +135,8 @@ Acesse `http://localhost:5173`.
 
 ## 👨‍💻 Autor
 
-<<<<<<< HEAD
-Desenvolvido por **[Seu Nome]**  
-*Militar / Desenvolvedor de Software*
-
-- **LinkedIn:** [Seu Perfil do LinkedIn](https://www.linkedin.com/)
-- **GitHub:** [Seu GitHub](https://github.com/)
-=======
 Desenvolvido por **PABLO HENRIQUE BENEDITO SILVA CAMARGO**  
 - **LinkedIn:** [Pablo Henrique
 ](www.linkedin.com/in/pablo-henrique-176984274)  
->>>>>>> 2c0f0dc037292f08d03ed5672dba62636b0397cc
 
----
 
-<div align="center">
-  <sub>Escola de Especialistas de Aeronáutica (EEAR) • Disciplina, Amor e Coragem</sub>
-</div>
