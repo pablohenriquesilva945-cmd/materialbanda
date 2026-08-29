@@ -1,8 +1,9 @@
 <div align="center">
 
-# 🎺 SistCautela - Gestão de Cautelas e Controle de Patrimônio
+# 🎺 SistCautela - Banda de Música da EEAR (FAB)
 
-**Sistema Completo de Controle de Inventário, Cautelas de Instrumentos e Emissão de Termos Digitais**
+**Sistema de Gestão de Cautelas, Inventário Patrimonial e Emissão de Termos Digitais**  
+*Desenvolvido para a Banda de Música da Escola de Especialistas de Aeronáutica (EEAR) — Força Aérea Brasileira*
 
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
@@ -15,109 +16,119 @@
 
 ---
 
-## 📌 Sobre o Projeto
+## 🎯 Contexto e Instituição
 
-O **SistCautela** é uma aplicação web full stack desenvolvida para modernizar, agilizar e auditar o processo de **cautela (empréstimo/custódia), devolução e controle patrimonial** de instrumentos musicais, acessórios e materiais institucionais.
+A **Escola de Especialistas de Aeronáutica (EEAR)**, sediada em Guaratinguetá-SP, é o maior complexo de ensino técnico militar da América do Sul. A **Banda de Música da EEAR** possui intensa rotina operacional em cerimoniais militares, desfiles, formaturas e apresentações culturais, demandando a guarda, manutenção e transporte contínuo de centenas de instrumentos musicais de alto valor patrimonial e sensibilidade técnica.
 
-O sistema elimina o uso de livros de registro em papel, automatizando a geração de **Termos de Responsabilidade em PDF com assinatura eletrônica em tela** e **autenticação via QR Code**, permitindo rastreabilidade e histórico em tempo real.
+---
 
-> 🔒 **Aviso de Privacidade & Proteção de Dados:**  
-> Este repositório foi publicado exclusivamente para fins de **demonstração técnica e portfólio profissional**. Todos os dados de militares, números de série e patrimônios contidos na demonstração pública são estritamente fictícios ou descaracterizados, em conformidade com as boas práticas de segurança da informação e LGPD.
+## 🧩 O Problema Enfrentado
+
+Antes da concepção do **SistCautela**, a rotina de controle de materiais e instrumentos enfrentava desafios operacionais recorrentes:
+
+1. **Dependência de Livros de Papel e Planilhas Descentralizadas:**  
+   O registro manual de cautelas gerava lentidão no atendimento aos músicos, rasuras, ilegibilidade e vulnerabilidade à perda física de registros.
+2. **Dificuldade na Rastreabilidade em Grandes Eventos:**  
+   Durante formaturas e viagens com alto volume de movimentação simultânea, identificar com precisão o militar responsável por cada item em tempo hábil era complexo.
+3. **Ausência de Comprovação Imediata e Formal:**  
+   A falta de um termo de responsabilidade padronizado com assinatura digital gerava insegurança jurídica e administrativa em casos de avarias ou extravios.
+4. **Inventário Moroso:**  
+   A contagem de patrimônio e o diagnóstico do estado de conservação dos instrumentos exigiam esforço manual exaustivo.
+
+---
+
+## 💡 A Solução Implementada
+
+O **SistCautela** digitalizou e automatizou 100% do ciclo de vida das cautelas e do patrimônio da Banda:
+
+* **Agilidade no Balcão de Cautela:** Emissão de empréstimos fixos ou temporários em menos de 1 minuto.
+* **Termos de Responsabilidade com Assinatura Digital:** Coleta de assinatura manuscrita diretamente na tela (touch ou mouse) com geração instantânea do PDF formatado contendo data/hora e hash de auditoria.
+* **Rastreabilidade por QR Code:** Identificação rápida de instrumentos e termos através de câmera/scanner, agilizando a conferência de entrada e saída.
+* **Painel Gerencial (Dashboard):** Visão analítica em tempo real de itens disponíveis, cautelados, em manutenção ou recolhidos.
+* **Histórico Completo de Movimentações:** Auditoria com registro de quem retirou, quem devolveu, data e condições do material.
+
+> 🔒 **Aviso de Privacidade & Proteção de Dados (LGPD):**  
+> Este repositório foi disponibilizado publicamente para fins de **demonstração técnica e portfólio de engenharia de software**. Quaisquer dados pessoais, matrículas e patrimônios exibidos nesta versão são fictícios ou descaracterizados, preservando o sigilo das informações institucionais.
 
 ---
 
 ## ✨ Principais Funcionalidades
 
-- **📋 Gestão de Cautelas (Fixas e Temporárias):**
-  - Registro de empréstimos vinculando materiais a responsáveis.
-  - Baixa de devoluções com registro de data, estado do item e observações.
-  - Histórico completo de movimentações e auditoria.
-
-- **✍️ Assinatura Eletrônica e Termos em PDF:**
-  - Coleta de assinatura digital direto no canvas do dispositivo (celular, tablet ou mouse).
-  - Geração instantânea de Termo de Responsabilidade em PDF formatado ([jsPDF](https://github.com/parallax/jsPDF)).
-  - Carimbo de data/hora e hash de validação.
-
-- **📱 Leitura e Geração de QR Code:**
-  - Emissão de QR Codes para cada item patrimonial ou termo de cautela.
-  - Leitor de QR Code integrado via câmera para conferência rápida em eventos e formaturas.
-
-- **📦 Controle de Estoque e Patrimônio:**
-  - Cadastro categorizado de instrumentos (Madeiras, Metais, Percussão, Acessórios).
-  - Status em tempo real (*Disponível*, *Cautelado*, *Em Manutenção*, *Baixado*).
-
-- **📊 Dashboard Analítico:**
-  - Visão geral de materiais em uso, quantidade de itens cautelados e taxas de devolução.
-
-- **🔐 Autenticação e Níveis de Acesso:**
-  - Controle de sessão seguro com criptografia de senhas (bcrypt) e tokens de autenticação.
+- **📋 Fluxo Completo de Cautelas:**
+  - Empréstimos fixos (uso contínuo pelo efetivo) e temporários (apresentações e escalas avulsas).
+  - Devolução com checklist de integridade e observações de manutenção.
+- **✍️ Coleta de Assinatura Eletrônica (Canvas API):**
+  - Assinatura no navegador com integração direta ao documento.
+- **📄 Geração Automatizada de Termos em PDF:**
+  - Renderização precisa de documentos padronizados com brasão institucional e dados do responsável.
+- **📱 Integração com QR Code:**
+  - Geração de etiquetas QR Code para identificação física e leitor via câmera web/mobile.
+- **📦 Gestão de Inventário:**
+  - Categorização completa (Madeiras, Metais, Percussão, Cordas e Acessórios) e controle de estado de conservação.
 
 ---
 
-## 🛠️ Tecnologias Utilizadas
+## 🛠️ Stack Tecnológica
 
 ### Frontend
 - **React 18** com **TypeScript**
-- **Vite** para build ultra-rápido
-- **Lucide React** para iconografia moderna
-- **jsPDF & html2canvas** para geração e renderização de relatórios
-- **HTML5 Canvas API** para coleta de assinatura manuscrita
+- **Vite** para otimização de build
+- **Lucide Icons** para interface limpa e intuitiva
+- **jsPDF & html2canvas** para emissão dos termos
+- **HTML5 Canvas API** para assinatura digital
 
-### Backend & Nuvem
-- **Node.js & Express** integrado como **Serverless Functions** na **Vercel**
-- **Supabase (PostgreSQL)** para banco de dados relacional e persistência
-- **Bcrypt** para hashing seguro de credenciais
-- **Vercel** para deploy e hospedagem com CI/CD contínuo
+### Backend & Cloud
+- **Node.js & Express** arquitetado em **Serverless Functions** na **Vercel**
+- **Supabase (PostgreSQL)** para banco de dados relacional e integridade referencial
+- **Bcrypt** para segurança e hashing de senhas
+- **Vercel** para hospedagem escalável e CI/CD
 
 ---
 
-## 🚀 Como Executar o Projeto Localmente
+## 🚀 Como Executar Localmente
 
-### Pré-requisitos
-- [Node.js](https://nodejs.org/) (versão 18 ou superior)
-- [Git](https://git-scm.com/)
-
-### 1. Clonar o Repositório
+### 1. Clonar o Projeto
 ```bash
 git clone https://github.com/SEU_USUARIO/sistcautela-banda.git
 cd sistcautela-banda
 ```
 
-### 2. Instalar as Dependências
+### 2. Instalar Dependências
 ```bash
 npm install
 ```
 
-### 3. Configurar as Variáveis de Ambiente
-Copie o arquivo de exemplo e preencha com as credenciais do seu banco de dados:
+### 3. Configurar o Arquivo `.env`
+Crie um arquivo `.env` a partir do `.env.example`:
 ```bash
 cp .env.example .env
 ```
+Preencha com as credenciais do seu banco de dados Supabase.
 
-### 4. Executar em Modo de Desenvolvimento
+### 4. Iniciar o Ambiente de Desenvolvimento
 ```bash
 npm run dev
 ```
-Acesse `http://localhost:5173` no seu navegador.
+Acesse `http://localhost:5173`.
 
 ---
 
-## 🏛️ Arquitetura do Repositório
+## 🏛️ Estrutura do Código
 
 ```text
-├── api/                  # Serverless API Routes (Vercel Backend)
-│   └── index.ts          # Endpoints Express (Auth, Cautelas, Inventário)
-├── public/               # Ativos estáticos e logotipos
+├── api/                  # Serverless API Routes (Backend Express na Vercel)
+│   └── index.ts          # Rotas de Autenticação, Cautelas e Inventário
+├── public/               # Ativos estáticos e brasão institucional
 ├── src/
-│   ├── components/       # Modais (PDF, Assinatura, QR Code Scanner)
-│   ├── AuthContext.tsx   # Gerenciamento global de autenticação
-│   ├── Dashboard.tsx     # Painel de métricas e visão geral
-│   ├── CautionArea.tsx   # Fluxo de emissão e devolução de cautelas
-│   ├── InventoryArea.tsx # Gestão de patrimônio e instrumentos
-│   ├── pdfService.ts     # Gerador de documentos e termos em PDF
-│   └── App.tsx           # Roteamento e estrutura principal
-├── vercel.json           # Configuração de rotas e Serverless Vercel
-└── vite.config.ts        # Configuração do Vite e plugins
+│   ├── components/       # Modais de Assinatura, Prévia de PDF e Leitor QR Code
+│   ├── AuthContext.tsx   # Gerenciamento de sessão e contexto de usuário
+│   ├── Dashboard.tsx     # Indicadores e métricas em tempo real
+│   ├── CautionArea.tsx   # Gestão e devolução de cautelas
+│   ├── InventoryArea.tsx # Cadastro e controle de instrumentos
+│   ├── pdfService.ts     # Serviço de geração e layout de termos em PDF
+│   └── App.tsx           # Ponto de entrada e rotas da aplicação
+├── vercel.json           # Configuração de rotas Serverless da Vercel
+└── vite.config.ts        # Configuração do Vite
 ```
 
 ---
@@ -125,11 +136,13 @@ Acesse `http://localhost:5173` no seu navegador.
 ## 👨‍💻 Autor
 
 Desenvolvido por **[Seu Nome]**  
-- **LinkedIn:** [Seu Perfil do LinkedIn](https://www.linkedin.com/)  
-- **Portfólio / GitHub:** [Seu GitHub](https://github.com/)  
+*Militar / Desenvolvedor de Software*
+
+- **LinkedIn:** [Seu Perfil do LinkedIn](https://www.linkedin.com/)
+- **GitHub:** [Seu GitHub](https://github.com/)
 
 ---
 
 <div align="center">
-  <sub>SistCautela • Desenvolvido com foco em eficiência, segurança e modernização de processos.</sub>
+  <sub>Escola de Especialistas de Aeronáutica (EEAR) • Disciplina, Amor e Coragem</sub>
 </div>
