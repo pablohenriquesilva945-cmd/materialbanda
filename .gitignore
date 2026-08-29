@@ -6,3 +6,10 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Bancos de dados e arquivos locais
+*.db
+*.sqlite
+*.sqlite3
+sistema_cautela.db
+
