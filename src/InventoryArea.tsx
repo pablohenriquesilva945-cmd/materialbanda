@@ -81,7 +81,12 @@ const InventoryArea: React.FC = () => {
           setSelectedMaterialForQr(data);
         }
       } else {
-        setError(data.error || 'Erro ao salvar material');
+        const rawError = data.error || 'Erro ao salvar material';
+        if (rawError.includes('materiais_bmp_key') || rawError.includes('duplicate key') || rawError.includes('violates unique constraint')) {
+          setError(`Já existe um item cadastrado com o BPM (Patrimônio) "${formData.bmp}". Verifique a lista.`);
+        } else {
+          setError(rawError);
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -201,7 +206,10 @@ const InventoryArea: React.FC = () => {
               <input
                 type="text"
                 value={formData.nome}
-                onChange={e => setFormData({ ...formData, nome: e.target.value })}
+                onChange={e => {
+                  setError(null);
+                  setFormData({ ...formData, nome: e.target.value });
+                }}
                 className="w-full bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all text-sm py-2.5 px-3.5 outline-none font-medium"
                 placeholder={
                   activeSubTab === 'Instrumento' 
@@ -221,7 +229,10 @@ const InventoryArea: React.FC = () => {
                 <input
                   type="text"
                   value={formData.bmp}
-                  onChange={e => setFormData({ ...formData, bmp: e.target.value })}
+                  onChange={e => {
+                    setError(null);
+                    setFormData({ ...formData, bmp: e.target.value });
+                  }}
                   className="w-full bg-slate-50 border border-slate-300 rounded-lg focus:bg-white focus:ring-2 focus:ring-[#003366]/20 focus:border-[#003366] transition-all text-sm py-2.5 px-3.5 outline-none font-medium font-mono"
                   placeholder="Ex: 123456"
                   required
@@ -275,9 +286,16 @@ const InventoryArea: React.FC = () => {
             )}
             <div className="md:col-span-4 flex flex-col items-end gap-2 pt-1">
               {error && (
-                <p className="text-red-600 text-xs font-bold animate-in fade-in">
-                  {error}
-                </p>
+                <div className="w-full bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-lg text-xs font-semibold flex items-center justify-between gap-2 animate-in fade-in">
+                  <span>{error}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setError(null)}
+                    className="text-red-500 hover:text-red-700 text-sm font-bold leading-none cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </div>
               )}
               <button
                 type="submit"

@@ -367,23 +367,45 @@ app.put("/api/militares/:id", async (req, res) => {
 app.get("/api/materiais", async (req, res) => {
   res.setHeader("Cache-Control", "public, s-maxage=10, stale-while-revalidate=59");
   try {
-    const { data: materiais, error } = await supabase
-      .from("materiais")
-      .select(`
-        *,
-        cautela_itens (
-          cautelas (
-            status,
-            militares (nome)
-          )
-        )
-      `)
-      .order("nome", { ascending: true });
+    const PAGE_SIZE = 1000;
+    let allMateriais: any[] = [];
+    let page = 0;
+    let hasMore = true;
 
-    if (error) throw error;
+    while (hasMore) {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+
+      const { data: batch, error } = await supabase
+        .from("materiais")
+        .select(`
+          *,
+          cautela_itens (
+            cautelas (
+              status,
+              militares (nome)
+            )
+          )
+        `)
+        .order("nome", { ascending: true })
+        .range(from, to);
+
+      if (error) throw error;
+
+      if (batch && batch.length > 0) {
+        allMateriais = allMateriais.concat(batch);
+        if (batch.length < PAGE_SIZE) {
+          hasMore = false;
+        } else {
+          page++;
+        }
+      } else {
+        hasMore = false;
+      }
+    }
 
     // Transform to include cautelado_por
-    const formatted = materiais.map((m: any) => {
+    const formatted = allMateriais.map((m: any) => {
       let cautelado_por = undefined;
 
       if (m.cautela_itens && Array.isArray(m.cautela_itens)) {
@@ -418,7 +440,11 @@ app.post("/api/materiais", async (req, res) => {
     res.json(data);
   } catch (e: any) {
     console.error("Erro ao cadastrar material:", e);
-    res.status(400).json({ error: e.message });
+    let errorMsg = e.message;
+    if (e.code === '23505' || e.message?.includes('materiais_bmp_key')) {
+      errorMsg = `Já existe um item cadastrado com o BMP (Patrimônio) "${bmp}".`;
+    }
+    res.status(400).json({ error: errorMsg });
   }
 });
 
@@ -426,7 +452,12 @@ app.put("/api/materiais/:id", async (req, res) => {
   const { id } = req.params;
   const { nome, bmp, marca, estado, tipo, subtipo, lugar } = req.body;
   try {
-    const status = estado === 'Manutenção' ? 'Manutenção' : 'Disponível';
+    const { data: currentMat } = await supabase.from('materiais').select('status').eq('id', id).single();
+    let status = currentMat?.status || 'Disponível';
+    if (status !== 'Cautelado') {
+      status = estado === 'Manutenção' ? 'Manutenção' : 'Disponível';
+    }
+
     const { error } = await supabase
       .from("materiais")
       .update({ nome, bmp, marca, estado, tipo, subtipo, lugar, status })
@@ -436,7 +467,11 @@ app.put("/api/materiais/:id", async (req, res) => {
     res.json({ success: true });
   } catch (e: any) {
     console.error("Erro ao atualizar material:", e);
-    res.status(400).json({ error: e.message });
+    let errorMsg = e.message;
+    if (e.code === '23505' || e.message?.includes('materiais_bmp_key')) {
+      errorMsg = `Já existe outro item cadastrado com o BMP (Patrimônio) "${bmp}".`;
+    }
+    res.status(400).json({ error: errorMsg });
   }
 });
 
