@@ -15,8 +15,8 @@ const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab }) =>
 
   const menuItems = [
     { id: 'dashboard', label: 'Painel Geral', icon: LayoutDashboard },
-    { id: 'militar', label: 'Efetivo de Militares', icon: Users },
-    { id: 'instrumento', label: 'Acervo e Materiais', icon: Music },
+    { id: 'militar', label: 'Cadastro de Militares', icon: Users },
+    { id: 'instrumento', label: 'Cadastro de Materiais', icon: Music },
     { id: 'cautela', label: 'Cautela Permanente', icon: Handshake },
     { id: 'temporaria', label: 'Cautela Temporária', icon: Clock },
     { id: 'configuracoes', label: 'Configurações', icon: PenTool },

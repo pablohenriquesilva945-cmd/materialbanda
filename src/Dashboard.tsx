@@ -39,7 +39,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     },
     {
       id: 'instrumento',
-      label: 'Acervo Total',
+      label: 'Material Total',
       count: stats.materiais,
       unit: 'itens',
       icon: Music,
