@@ -20,6 +20,7 @@ export const POSTOS_GRADUACOES = [
   "Capitão",
   "Major",
   "Coronel"
+  "Ten-Coronel"
 ];
 
 export const HIERARQUIA_PESOS: Record<string, number> = {
